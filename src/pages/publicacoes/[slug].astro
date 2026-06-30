@@ -20,9 +20,30 @@ function formatarData(iso: string) {
   return `${parseInt(dia)} de ${meses[parseInt(mes) - 1]} de ${ano}`;
 }
 
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9\s]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+
+const headings: { text: string; id: string }[] = pub.corpo
+  ?.filter((block: any) => block._type === 'block' && block.style === 'h2')
+  .map((block: any) => {
+    const text = block.children?.map((c: any) => c.text || '').join('') || '';
+    return { text, id: slugify(text) };
+  }) ?? [];
+
 const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
   components: {
     block: {
+      h2: ({ children, value }: any) => {
+        const text = value.children?.map((c: any) => c.text || '').join('') || '';
+        return `<h2 id="${slugify(text)}">${children}</h2>`;
+      },
       legenda: ({ children }: any) => `<p class="pub-legenda">${children}</p>`,
     },
     types: {
@@ -89,12 +110,19 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       color: rgba(255,255,255,0.40);
     }
 
+    /* Layout corpo */
     .pub-interna-corpo {
       background: var(--neutral-100);
       padding: 48px 0 96px;
     }
     .pub-interna-corpo .section-inner {
-      max-width: 860px;
+      max-width: 1280px;
+    }
+    .pub-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 180px;
+      gap: 48px;
+      align-items: start;
     }
     .pub-corpo-box {
       background: #fff;
@@ -103,7 +131,37 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       box-shadow: 0 2px 24px rgba(29,53,87,0.06);
     }
 
-    /* Estilo do conteúdo rich text */
+    /* TOC */
+    .pub-toc {
+      position: sticky;
+      top: 140px;
+    }
+    .pub-toc-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--neutral-400);
+      margin-bottom: 14px;
+    }
+    .pub-toc-link {
+      display: block;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--neutral-400);
+      text-decoration: none;
+      padding: 5px 0 5px 12px;
+      border-left: 2px solid transparent;
+      margin-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .pub-toc-link:hover { color: var(--navy-700); }
+    .pub-toc-link.active {
+      color: var(--navy-700);
+      border-left-color: var(--gold-400);
+    }
+
+    /* Rich text */
     .pub-corpo-content { line-height: 1.80; color: var(--neutral-700); }
     .pub-corpo-content p { font-size: 17px; margin-bottom: 24px; }
     .pub-corpo-content p:last-child { margin-bottom: 0; }
@@ -114,6 +172,7 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       color: var(--navy-700);
       margin: 48px 0 20px;
       line-height: 1.2;
+      scroll-margin-top: 140px;
     }
     .pub-corpo-content h3 {
       font-family: 'Spectral', serif;
@@ -122,6 +181,7 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       color: var(--navy-700);
       margin: 36px 0 16px;
       line-height: 1.25;
+      scroll-margin-top: 140px;
     }
     .pub-corpo-content strong { color: var(--navy-800); font-weight: 600; }
     .pub-corpo-content em { font-style: italic; }
@@ -137,17 +197,9 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       font-style: italic;
       font-size: 18px;
     }
-    .pub-corpo-content img {
-      width: 100%;
-      margin: 32px 0;
-    }
-    .pub-figura {
-      margin: 32px 0;
-    }
-    .pub-figura img {
-      width: 100%;
-      margin: 0;
-    }
+    .pub-corpo-content img { width: 100%; margin: 32px 0; }
+    .pub-figura { margin: 32px 0; }
+    .pub-figura img { width: 100%; margin: 0; }
     .pub-legenda {
       font-size: 13px !important;
       color: var(--neutral-400) !important;
@@ -157,14 +209,7 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       font-style: italic;
       line-height: 1.5;
     }
-    .pub-codigo-embutido {
-      margin: 32px 0;
-      overflow-x: auto;
-    }
-
-    @media (max-width: 768px) {
-      .pub-corpo-box { padding: 32px 24px; border-radius: 12px; }
-    }
+    .pub-codigo-embutido { margin: 32px 0; overflow-x: auto; }
 
     /* Sticky reading bar */
     .pub-sticky-bar {
@@ -226,8 +271,18 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       flex-shrink: 0;
     }
 
+    /* Responsivo */
+    @media (max-width: 1100px) {
+      .pub-layout {
+        grid-template-columns: minmax(0, 1fr) 160px;
+        gap: 32px;
+      }
+    }
     @media (max-width: 768px) {
       .pub-interna-header { padding: 56px 0 48px; }
+      .pub-layout { grid-template-columns: 1fr; }
+      .pub-toc { display: none; }
+      .pub-corpo-box { padding: 32px 24px; border-radius: 12px; }
       .pub-corpo-content p, .pub-corpo-content li { font-size: 16px; }
       .pub-sticky-inner {
         grid-template-columns: auto 1fr;
@@ -269,26 +324,57 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
   <!-- Conteúdo -->
   <section class="pub-interna-corpo">
     <div class="section-inner">
-      <div class="pub-corpo-box">
-        <div class="pub-corpo-content" set:html={corpoHTML} />
+      <div class="pub-layout">
+        <div class="pub-corpo-box">
+          <div class="pub-corpo-content" set:html={corpoHTML} />
+        </div>
+
+        {headings.length > 0 && (
+          <aside class="pub-toc" id="pubToc">
+            <p class="pub-toc-label">Neste artigo</p>
+            <nav>
+              {headings.map(h => (
+                <a href={`#${h.id}`} class="pub-toc-link" data-id={h.id}>{h.text}</a>
+              ))}
+            </nav>
+          </aside>
+        )}
       </div>
     </div>
   </section>
 
   <script is:inline>
     (function () {
+      // Sticky reading bar
       const bar = document.getElementById('pubStickyBar');
       const header = document.getElementById('pubHeader');
       const navbar = document.querySelector('.navbar');
-      if (!bar || !header) return;
+      if (bar && header) {
+        bar.style.top = (navbar ? navbar.offsetHeight : 68) + 'px';
+        new IntersectionObserver(function ([entry]) {
+          const gone = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+          bar.classList.toggle('visible', gone);
+          bar.setAttribute('aria-hidden', gone ? 'false' : 'true');
+        }, { threshold: 0 }).observe(header);
+      }
 
-      bar.style.top = (navbar ? navbar.offsetHeight : 68) + 'px';
+      // TOC scroll spy
+      const tocLinks = document.querySelectorAll('.pub-toc-link');
+      if (!tocLinks.length) return;
+      const headingEls = Array.from(document.querySelectorAll('.pub-corpo-content h2[id]'));
 
-      new IntersectionObserver(function ([entry]) {
-        const gone = !entry.isIntersecting && entry.boundingClientRect.top < 0;
-        bar.classList.toggle('visible', gone);
-        bar.setAttribute('aria-hidden', gone ? 'false' : 'true');
-      }, { threshold: 0 }).observe(header);
+      function updateToc() {
+        let current = headingEls[0]?.id || '';
+        for (const h of headingEls) {
+          if (h.getBoundingClientRect().top < 160) current = h.id;
+        }
+        tocLinks.forEach(link => {
+          link.classList.toggle('active', link.dataset.id === current);
+        });
+      }
+
+      window.addEventListener('scroll', updateToc, { passive: true });
+      updateToc();
     })();
   </script>
 
