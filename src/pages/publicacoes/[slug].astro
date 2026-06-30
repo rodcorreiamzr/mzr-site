@@ -163,11 +163,14 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       border-left-color: var(--gold-400);
     }
 
-    /* Rich text */
+    /* Rich text — conteúdo vem de set:html, então os descendentes usam
+       :global() para escapar do escopo do Astro (o atributo data-astro-cid
+       não é injetado nos elementos vindos do CMS). .pub-corpo-content segue
+       com escopo, então as regras não vazam para o resto do site. */
     .pub-corpo-content { line-height: 1.80; color: var(--neutral-700); }
-    .pub-corpo-content p { font-size: 17px; margin-bottom: 24px; }
-    .pub-corpo-content p:last-child { margin-bottom: 0; }
-    .pub-corpo-content h2 {
+    .pub-corpo-content :global(p) { font-size: 17px; margin-bottom: 24px; }
+    .pub-corpo-content :global(p:last-child) { margin-bottom: 0; }
+    .pub-corpo-content :global(h2) {
       font-family: 'Spectral', serif;
       font-weight: 400;
       font-size: 28px;
@@ -176,7 +179,7 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       line-height: 1.2;
       scroll-margin-top: var(--scroll-offset, 160px);
     }
-    .pub-corpo-content h3 {
+    .pub-corpo-content :global(h3) {
       font-family: 'Spectral', serif;
       font-weight: 400;
       font-size: 22px;
@@ -185,13 +188,13 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       line-height: 1.25;
       scroll-margin-top: var(--scroll-offset, 160px);
     }
-    .pub-corpo-content strong { color: var(--navy-800); font-weight: 600; }
-    .pub-corpo-content em { font-style: italic; }
-    .pub-corpo-content a { color: var(--gold-500); text-decoration: underline; }
-    .pub-corpo-content a:hover { color: var(--gold-400); }
-    .pub-corpo-content ul, .pub-corpo-content ol { margin: 0 0 24px 24px; }
-    .pub-corpo-content li { font-size: 17px; margin-bottom: 8px; }
-    .pub-corpo-content blockquote {
+    .pub-corpo-content :global(strong) { color: var(--navy-800); font-weight: 600; }
+    .pub-corpo-content :global(em) { font-style: italic; }
+    .pub-corpo-content :global(a) { color: var(--gold-500); text-decoration: underline; }
+    .pub-corpo-content :global(a:hover) { color: var(--gold-400); }
+    .pub-corpo-content :global(ul), .pub-corpo-content :global(ol) { margin: 0 0 24px 24px; }
+    .pub-corpo-content :global(li) { font-size: 17px; margin-bottom: 8px; }
+    .pub-corpo-content :global(blockquote) {
       border-left: 3px solid var(--gold-400);
       padding: 4px 0 4px 24px;
       margin: 32px 0;
@@ -199,10 +202,19 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       font-style: italic;
       font-size: 18px;
     }
-    .pub-corpo-content img { width: 100%; max-width: 100%; height: auto; margin: 32px 0; display: block; }
-    .pub-figura { margin: 32px 0; }
-    .pub-figura img { width: 100%; max-width: 100%; height: auto; display: block; }
-    .pub-legenda {
+    /* Imagem: width:100% força redução das grandes E ampliação das pequenas
+       até a largura do conteúdo (box descontado o padding). box-sizing global
+       garante que não estoure. */
+    .pub-corpo-content :global(img) {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      margin: 32px 0;
+    }
+    .pub-corpo-content :global(.pub-figura) { margin: 32px 0; }
+    .pub-corpo-content :global(.pub-figura img) { margin: 0; }
+    .pub-corpo-content :global(.pub-legenda) {
       font-size: 13px !important;
       color: var(--neutral-400) !important;
       text-align: center;
@@ -211,7 +223,8 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       font-style: italic;
       line-height: 1.5;
     }
-    .pub-codigo-embutido { margin: 32px 0; overflow-x: auto; }
+    .pub-corpo-content :global(.pub-codigo-embutido) { margin: 32px 0; max-width: 100%; overflow-x: auto; }
+    .pub-corpo-content :global(.pub-codigo-embutido img) { margin: 0; }
 
     /* Sticky reading bar */
     .pub-sticky-bar {
@@ -285,8 +298,8 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       .pub-layout { grid-template-columns: 1fr; }
       .pub-toc { display: none; }
       .pub-corpo-box { padding: 32px 24px; border-radius: 12px; }
-      .pub-figura { margin: 24px 0; }
-      .pub-corpo-content p, .pub-corpo-content li { font-size: 16px; }
+      .pub-corpo-content :global(.pub-figura) { margin: 24px 0; }
+      .pub-corpo-content :global(p), .pub-corpo-content :global(li) { font-size: 16px; }
       .pub-sticky-inner {
         grid-template-columns: auto 1fr;
         padding: 10px 20px;
