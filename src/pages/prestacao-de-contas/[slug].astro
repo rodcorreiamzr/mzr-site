@@ -1,0 +1,433 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPrestacoesContas, getPrestacaoContasBySlug } from '../../lib/sanity';
+import { toHTML } from '@portabletext/to-html';
+
+export async function getStaticPaths() {
+  const itens = await getPrestacoesContas();
+  return itens.map((p: any) => ({ params: { slug: p.slug } }));
+}
+
+const { slug } = Astro.params;
+const doc = await getPrestacaoContasBySlug(slug!);
+
+if (!doc) return Astro.redirect('/');
+
+function formatarData(iso: string) {
+  if (!iso) return '';
+  const [ano, mes, dia] = iso.split('-');
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  return `${parseInt(dia)} de ${meses[parseInt(mes) - 1]} de ${ano}`;
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9\s]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+
+const headings: { text: string; id: string }[] = doc.corpo
+  ?.filter((block: any) => block._type === 'block' && block.style === 'h2')
+  .map((block: any) => {
+    const text = block.children?.map((c: any) => c.text || '').join('') || '';
+    return { text, id: slugify(text) };
+  }) ?? [];
+
+const corpoHTML = doc.corpo ? toHTML(doc.corpo, {
+  components: {
+    block: {
+      h2: ({ children, value }: any) => {
+        const text = value.children?.map((c: any) => c.text || '').join('') || '';
+        return `<h2 id="${slugify(text)}">${children}</h2>`;
+      },
+      legenda: ({ children }: any) => `<p class="pub-legenda">${children}</p>`,
+    },
+    types: {
+      codigoEmbutido: ({ value }: any) =>
+        `<div class="pub-codigo-embutido">${value.codigo || ''}</div>`,
+      image: ({ value }: any) => {
+        const src = value?.assetUrl || '';
+        const legenda = value?.legenda || '';
+        if (!src) return '';
+        return `<figure class="pub-figura">
+          <img src="${src}" alt="${legenda}" />
+          ${legenda ? `<figcaption class="pub-legenda">${legenda}</figcaption>` : ''}
+        </figure>`;
+      },
+    },
+  },
+}) : '';
+---
+
+<Base
+  title={`${doc.titulo} — MZR Family Office`}
+  ogImage={doc.ogImagemUrl || undefined}
+  ogType="article"
+>
+
+  <style>
+    .pub-interna-header {
+      background: var(--navy-700);
+      padding: 72px 0 64px;
+    }
+    .pub-interna-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      text-decoration: none;
+      margin-bottom: 32px;
+      transition: color 0.2s;
+    }
+    .pub-interna-back:hover { color: var(--gold-400); }
+    .pub-interna-tag {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold-400);
+      margin-bottom: 16px;
+    }
+    .pub-interna-title {
+      font-family: 'Spectral', serif;
+      font-weight: 400;
+      font-size: clamp(28px, 3vw, 44px);
+      color: #fff;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+    .pub-interna-meta {
+      font-size: 13px;
+      color: rgba(255,255,255,0.40);
+    }
+
+    /* Layout corpo */
+    .pub-interna-corpo {
+      background: var(--neutral-100);
+      padding: 48px 0 96px;
+    }
+    .pub-interna-corpo .section-inner {
+      max-width: 1280px;
+    }
+    .pub-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 180px;
+      gap: 48px;
+      align-items: start;
+    }
+    .pub-corpo-box {
+      background: #fff;
+      border-radius: 16px;
+      padding: 56px 64px;
+      box-shadow: 0 2px 24px rgba(29,53,87,0.06);
+      min-width: 0;
+      overflow: hidden;
+    }
+    /* TOC */
+    .pub-toc {
+      position: sticky;
+      top: 140px;
+    }
+    .pub-toc-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--neutral-400);
+      margin-bottom: 14px;
+    }
+    .pub-toc-link {
+      display: block;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--neutral-400);
+      text-decoration: none;
+      padding: 5px 0 5px 12px;
+      border-left: 2px solid transparent;
+      margin-bottom: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .pub-toc-link:hover { color: var(--navy-700); }
+    .pub-toc-link.active {
+      color: var(--navy-700);
+      border-left-color: var(--gold-400);
+    }
+
+    /* Rich text — conteúdo vem de set:html, então os descendentes usam
+       :global() para escapar do escopo do Astro (o atributo data-astro-cid
+       não é injetado nos elementos vindos do CMS). .pub-corpo-content segue
+       com escopo, então as regras não vazam para o resto do site. */
+    .pub-corpo-content { line-height: 1.80; color: var(--neutral-700); overflow-wrap: break-word; word-break: break-word; }
+    .pub-corpo-content :global(p) { font-size: 17px; margin-bottom: 24px; }
+    .pub-corpo-content :global(p:last-child) { margin-bottom: 0; }
+    .pub-corpo-content :global(h2) {
+      font-family: 'Spectral', serif;
+      font-weight: 400;
+      font-size: 28px;
+      color: var(--navy-700);
+      margin: 48px 0 20px;
+      line-height: 1.2;
+      scroll-margin-top: var(--scroll-offset, 160px);
+    }
+    .pub-corpo-content :global(h3) {
+      font-family: 'Spectral', serif;
+      font-weight: 400;
+      font-size: 22px;
+      color: var(--navy-700);
+      margin: 36px 0 16px;
+      line-height: 1.25;
+      scroll-margin-top: var(--scroll-offset, 160px);
+    }
+    .pub-corpo-content :global(strong) { color: var(--navy-800); font-weight: 600; }
+    .pub-corpo-content :global(em) { font-style: italic; }
+    .pub-corpo-content :global(a) { color: var(--gold-500); text-decoration: underline; }
+    .pub-corpo-content :global(a:hover) { color: var(--gold-400); }
+    .pub-corpo-content :global(ul), .pub-corpo-content :global(ol) { margin: 0 0 24px 24px; }
+    .pub-corpo-content :global(li) { font-size: 17px; margin-bottom: 8px; }
+    .pub-corpo-content :global(blockquote) {
+      border-left: 3px solid var(--gold-400);
+      padding: 4px 0 4px 24px;
+      margin: 32px 0;
+      color: var(--neutral-500);
+      font-style: italic;
+      font-size: 18px;
+    }
+    .pub-corpo-content :global(img) {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      margin: 32px 0;
+    }
+    .pub-corpo-content :global(.pub-figura) { margin: 32px 0; }
+    .pub-corpo-content :global(.pub-figura img) { margin: 0; }
+    .pub-corpo-content :global(.pub-legenda) {
+      font-size: 13px !important;
+      color: var(--neutral-400) !important;
+      text-align: center;
+      margin-top: 10px !important;
+      margin-bottom: 0 !important;
+      font-style: italic;
+      line-height: 1.5;
+    }
+    .pub-corpo-content :global(.pub-codigo-embutido) { margin: 32px 0; max-width: 100%; overflow-x: auto; }
+    .pub-corpo-content :global(.pub-codigo-embutido img) { margin: 0; }
+    .pub-corpo-content :global(iframe) {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      border: 0;
+      margin: 32px 0;
+    }
+    .pub-corpo-content :global(.pub-codigo-embutido iframe) { margin: 0; }
+
+    /* Sticky reading bar */
+    .pub-sticky-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 68px;
+      z-index: 299;
+      background: var(--navy-800);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      translate: 0 -110%;
+      opacity: 0;
+      transition: translate 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease;
+      pointer-events: none;
+    }
+    .pub-sticky-bar.visible {
+      translate: 0 0;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .pub-sticky-inner {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 32px;
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+    .pub-sticky-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: color 0.2s;
+    }
+    .pub-sticky-back:hover { color: var(--gold-400); }
+    .pub-sticky-title {
+      font-family: 'Spectral', serif;
+      font-size: 17px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.85);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+    }
+    .pub-sticky-date {
+      font-size: 12px;
+      color: rgba(255,255,255,0.35);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* Responsivo */
+    @media (max-width: 1100px) {
+      .pub-layout {
+        grid-template-columns: minmax(0, 1fr) 160px;
+        gap: 32px;
+      }
+    }
+    @media (max-width: 768px) {
+      .pub-interna-header { padding: 56px 0 48px; }
+      .pub-layout { grid-template-columns: 1fr; }
+      .pub-toc { display: none; }
+      .pub-corpo-box { padding: 32px 24px; border-radius: 12px; }
+      .pub-corpo-content :global(.pub-figura) { margin: 24px 0; }
+      .pub-corpo-content :global(p), .pub-corpo-content :global(li) { font-size: 16px; }
+      .pub-corpo-content :global(h2) { font-size: 23px; margin: 36px 0 16px; }
+      .pub-corpo-content :global(h3) { font-size: 19px; margin: 28px 0 12px; }
+      .pub-sticky-inner {
+        position: relative;
+        grid-template-columns: 1fr;
+        padding: 10px 20px;
+        gap: 0;
+      }
+      .pub-sticky-date { display: none; }
+      .pub-sticky-back-label { display: none; }
+      .pub-sticky-back {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      .pub-sticky-title { font-size: 15px; text-align: center; padding: 0 28px; }
+    }
+  </style>
+
+  <!-- Sticky reading bar -->
+  <div class="pub-sticky-bar" id="pubStickyBar" aria-hidden="true">
+    <div class="pub-sticky-inner">
+      <a href="/#fundos" class="pub-sticky-back" aria-label="Voltar para Fundos">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        <span class="pub-sticky-back-label">Ciclo Olímpico</span>
+      </a>
+      <p class="pub-sticky-title">{doc.titulo}</p>
+      <span class="pub-sticky-date">{formatarData(doc.data)}</span>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="pub-interna-header" id="pubHeader">
+    <div class="section-inner">
+      <a href="/#fundos" class="pub-interna-back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Ciclo Olímpico
+      </a>
+      <div class="pub-interna-tag">{doc.periodo || 'Prestação de Contas'}</div>
+      <h1 class="pub-interna-title">{doc.titulo}</h1>
+      <div class="pub-interna-meta">{formatarData(doc.data)}</div>
+    </div>
+  </div>
+
+  <!-- Conteúdo -->
+  <section class="pub-interna-corpo">
+    <div class="section-inner">
+      <div class="pub-layout">
+        <div class="pub-corpo-box">
+          <div class="pub-corpo-content" set:html={corpoHTML} />
+        </div>
+
+        {headings.length > 0 && (
+          <aside class="pub-toc" id="pubToc">
+            <p class="pub-toc-label">Nesta página</p>
+            <nav>
+              {headings.map(h => (
+                <a href={`#${h.id}`} class="pub-toc-link" data-id={h.id}>{h.text}</a>
+              ))}
+            </nav>
+          </aside>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <script is:inline>
+    (function () {
+      // Sticky reading bar
+      const bar = document.getElementById('pubStickyBar');
+      const header = document.getElementById('pubHeader');
+      const navbar = document.querySelector('.navbar');
+      let scrollOffset = 160;
+
+      function posicionarBarra() {
+        const navH = navbar ? navbar.getBoundingClientRect().height : 68;
+        const barH = bar ? bar.offsetHeight : 48;
+        scrollOffset = Math.round(navH) + barH + 56;
+        document.documentElement.style.setProperty('--scroll-offset', scrollOffset + 'px');
+        if (bar) bar.style.top = (Math.round(navH) - 1) + 'px';
+      }
+
+      if (bar && header) {
+        posicionarBarra();
+        window.addEventListener('resize', posicionarBarra, { passive: true });
+        window.addEventListener('load', posicionarBarra);
+        new IntersectionObserver(function ([entry]) {
+          const gone = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+          bar.classList.toggle('visible', gone);
+          bar.setAttribute('aria-hidden', gone ? 'false' : 'true');
+        }, { threshold: 0 }).observe(header);
+      }
+
+      // TOC scroll spy + click
+      const tocLinks = document.querySelectorAll('.pub-toc-link');
+      if (!tocLinks.length) return;
+      const headingEls = Array.from(document.querySelectorAll('.pub-corpo-content h2[id]'));
+
+      tocLinks.forEach(function(link) {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          var target = document.getElementById(this.dataset.id);
+          if (!target) return;
+          var top = target.getBoundingClientRect().top + window.scrollY - scrollOffset;
+          window.scrollTo({ top: top, behavior: 'smooth' });
+        });
+      });
+
+      function updateToc() {
+        var current = headingEls[0]?.id || '';
+        for (var i = 0; i < headingEls.length; i++) {
+          if (headingEls[i].getBoundingClientRect().top < scrollOffset + 10) current = headingEls[i].id;
+        }
+        tocLinks.forEach(function(link) {
+          link.classList.toggle('active', link.dataset.id === current);
+        });
+      }
+
+      window.addEventListener('scroll', updateToc, { passive: true });
+      updateToc();
+    })();
+  </script>
+
+</Base>

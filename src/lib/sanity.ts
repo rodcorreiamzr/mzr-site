@@ -79,3 +79,43 @@ export async function getFundoDocumentos() {
   }
   return mapa;
 }
+
+// Prestação de Contas do Ciclo Olímpico.
+export async function getPrestacoesContas() {
+  return client.fetch(`
+    *[_type == "prestacaoContas"] | order(data desc) {
+      _id,
+      titulo,
+      periodo,
+      "slug": slug.current,
+      data
+    }
+  `);
+}
+
+export async function getPrestacaoContasBySlug(slug: string) {
+  return client.fetch(`
+    *[_type == "prestacaoContas" && slug.current == $slug][0] {
+      _id,
+      titulo,
+      periodo,
+      "slug": slug.current,
+      data,
+      corpo[] {
+        ...,
+        "assetUrl": asset->url
+      },
+      "ogImagemUrl": ogImagem.asset->url
+    }
+  `, { slug });
+}
+
+// Mais recente — usada para linkar a partir do modal do fundo Ciclo Olímpico.
+export async function getUltimaPrestacaoContas() {
+  return client.fetch(`
+    *[_type == "prestacaoContas"] | order(data desc) [0] {
+      titulo,
+      "slug": slug.current
+    }
+  `);
+}

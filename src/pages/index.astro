@@ -1,8 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
-import { getUltimasPublicacoes, getFundoDocumentos } from '../lib/sanity';
+import { getUltimasPublicacoes, getFundoDocumentos, getUltimaPrestacaoContas } from '../lib/sanity';
 const publicacoes = await getUltimasPublicacoes(3);
 const fundoDocs = await getFundoDocumentos();
+const prestacao = await getUltimaPrestacaoContas();
+const prestacaoUrl = prestacao?.slug ? `/prestacao-de-contas/${prestacao.slug}` : null;
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr + 'T00:00:00');
@@ -1074,9 +1076,11 @@ function formatDate(dateStr: string) {
 </div>
 
 
-<script define:vars={{ fundoDocs }}>
+<script define:vars={{ fundoDocs, prestacaoUrl }}>
   // Documentos de fundos vindos do Sanity (build-time). Consumido no overlay do fundoData.
   window.__fundoDocs = fundoDocs || {};
+  // URL da prestação de contas mais recente (Ciclo Olímpico), ou null se não houver.
+  window.__prestacaoUrl = prestacaoUrl || null;
 </script>
 
 <script is:inline>
@@ -1449,6 +1453,12 @@ function formatDate(dateStr: string) {
       var docs = SD[k] && toLinks(SD[k].documentos);
       if (docs && docs.length) fundoData[k].docs = docs;
     });
+    // Ciclo Olímpico: anexa a Prestação de Contas (página dedicada) se houver uma publicada.
+    if (window.__prestacaoUrl) {
+      fundoData.cicloolimpico.docs = (fundoData.cicloolimpico.docs || []).concat([
+        { label: 'Prestação de Contas', href: window.__prestacaoUrl, internal: true }
+      ]);
+    }
     if (SD.pevc) {
       var fatos = toLinks(SD.pevc.fatosRelevantes);
       if (fatos.length) fundoData.pevc.docs[0].subContent.links = fatos;
@@ -1486,6 +1496,7 @@ function formatDate(dateStr: string) {
     _fundoSubs = [];
     document.getElementById('fundoModalDocs').innerHTML = hasDocs ? d.docs.map(function(doc, i) {
       if (doc.subContent) { _fundoSubs[i] = doc.subContent; return '<button class="fundo-modal-doc-nav" onclick="navigateToFundoSub(' + i + ')">' + docIcon + doc.label + navChevron + '</button>'; }
+      if (doc.internal) { return '<a href="' + doc.href + '" class="fundo-modal-doc-link">' + docIcon + doc.label + navChevron + '</a>'; }
       return '<a href="' + doc.href + '" class="fundo-modal-doc-link" target="_blank" rel="noopener">' + docIcon + doc.label + '</a>';
     }).join('') : '';
     var hasGestoras = d.gestoras && d.gestoras.length > 0;
