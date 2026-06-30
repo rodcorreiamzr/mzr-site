@@ -18,6 +18,7 @@ const corpoHTML = doc.corpo ? toHTML(doc.corpo, {
         return '<h2 id="' + slugify(text) + '">' + props.children + '</h2>';
       },
       legenda: (props: any) => '<p class="pub-legenda">' + props.children + '</p>',
+      regulatorio: (props: any) => '<p class="pub-regulatorio">' + props.children + '</p>',
     },
     types: {
       codigoEmbutido: (props: any) => '<div class="pub-codigo-embutido">' + (props.value.codigo || '') + '</div>',
@@ -91,6 +92,7 @@ const pageTitle = doc.titulo + ' — MZR Family Office';
     .pub-corpo-content :global(.pub-legenda) { font-size: 13px !important; color: var(--neutral-400) !important; text-align: center; margin-top: 10px !important; margin-bottom: 0 !important; font-style: italic; line-height: 1.5; }
     .pub-corpo-content :global(.pub-codigo-embutido) { margin: 32px 0; max-width: 100%; overflow-x: auto; }
     .pub-corpo-content :global(iframe) { display: block; width: 100%; max-width: 100%; border: 0; margin: 32px 0; }
+    .pub-corpo-content :global(.pub-regulatorio) { font-size: 13px !important; color: var(--neutral-400); line-height: 1.7; text-align: justify; text-align-last: center; margin: 24px 0; }
 
     .pc-tabela-titulo { font-family: 'Spectral', serif; font-weight: 400; font-size: 24px; color: var(--navy-700); margin: 0 0 24px; }
 
@@ -147,9 +149,8 @@ const pageTitle = doc.titulo + ' — MZR Family Office';
     <div class="section-inner">
       <a href="/#fundos" class="pub-interna-back">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        Ciclo Olímpico
+        Fundos
       </a>
-      <div class="pub-interna-tag">Prestação de Contas</div>
       <h1 class="pub-interna-title">{doc.titulo}</h1>
     </div>
   </div>

@@ -67,6 +67,7 @@ export const prestacaoContas = defineType({
             { title: 'Título H3', value: 'h3' },
             { title: 'Legenda', value: 'legenda' },
             { title: 'Citação', value: 'blockquote' },
+            { title: 'Texto regulatório', value: 'regulatorio' },
           ],
           marks: {
             decorators: [

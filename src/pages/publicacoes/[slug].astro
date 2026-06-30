@@ -45,6 +45,7 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
         return `<h2 id="${slugify(text)}">${children}</h2>`;
       },
       legenda: ({ children }: any) => `<p class="pub-legenda">${children}</p>`,
+      regulatorio: (props: any) => '<p class="pub-regulatorio">' + props.children + '</p>',
     },
     types: {
       codigoEmbutido: ({ value }: any) =>
@@ -235,6 +236,8 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       margin: 32px 0;
     }
     .pub-corpo-content :global(.pub-codigo-embutido iframe) { margin: 0; }
+    /* Texto regulatório: miúdo/cinza, justificado com última linha centralizada */
+    .pub-corpo-content :global(.pub-regulatorio) { font-size: 13px !important; color: var(--neutral-400); line-height: 1.7; text-align: justify; text-align-last: center; margin: 24px 0; }
 
     /* Sticky reading bar */
     .pub-sticky-bar {
