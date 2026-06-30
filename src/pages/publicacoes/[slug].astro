@@ -166,14 +166,95 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       .pub-corpo-box { padding: 32px 24px; border-radius: 12px; }
     }
 
+    /* Sticky reading bar */
+    .pub-sticky-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 68px;
+      z-index: 299;
+      background: var(--navy-800);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      translate: 0 -110%;
+      opacity: 0;
+      transition: translate 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.28s ease;
+      pointer-events: none;
+    }
+    .pub-sticky-bar.visible {
+      translate: 0 0;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .pub-sticky-inner {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 16px;
+      padding: 12px 32px;
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+    .pub-sticky-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      text-decoration: none;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: color 0.2s;
+    }
+    .pub-sticky-back:hover { color: var(--gold-400); }
+    .pub-sticky-title {
+      font-family: 'Spectral', serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: rgba(255,255,255,0.85);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+    }
+    .pub-sticky-date {
+      font-size: 12px;
+      color: rgba(255,255,255,0.35);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
     @media (max-width: 768px) {
       .pub-interna-header { padding: 56px 0 48px; }
       .pub-corpo-content p, .pub-corpo-content li { font-size: 16px; }
+      .pub-sticky-inner {
+        grid-template-columns: auto 1fr;
+        padding: 10px 20px;
+        gap: 12px;
+      }
+      .pub-sticky-date { display: none; }
+      .pub-sticky-title { font-size: 13px; text-align: left; }
     }
   </style>
 
+  <!-- Sticky reading bar -->
+  <div class="pub-sticky-bar" id="pubStickyBar" aria-hidden="true">
+    <div class="pub-sticky-inner">
+      <a href="/publicacoes" class="pub-sticky-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+        Publicações
+      </a>
+      <p class="pub-sticky-title">{pub.titulo}</p>
+      <span class="pub-sticky-date">{formatarData(pub.data)}</span>
+    </div>
+  </div>
+
   <!-- Header -->
-  <div class="pub-interna-header">
+  <div class="pub-interna-header" id="pubHeader">
     <div class="section-inner">
       <a href="/publicacoes" class="pub-interna-back">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -193,5 +274,22 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       </div>
     </div>
   </section>
+
+  <script is:inline>
+    (function () {
+      const bar = document.getElementById('pubStickyBar');
+      const header = document.getElementById('pubHeader');
+      const navbar = document.querySelector('.navbar');
+      if (!bar || !header) return;
+
+      bar.style.top = (navbar ? navbar.offsetHeight : 68) + 'px';
+
+      new IntersectionObserver(function ([entry]) {
+        const gone = !entry.isIntersecting && entry.boundingClientRect.top < 0;
+        bar.classList.toggle('visible', gone);
+        bar.setAttribute('aria-hidden', gone ? 'false' : 'true');
+      }, { threshold: 0 }).observe(header);
+    })();
+  </script>
 
 </Base>
