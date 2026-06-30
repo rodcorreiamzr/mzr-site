@@ -167,7 +167,7 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
        :global() para escapar do escopo do Astro (o atributo data-astro-cid
        não é injetado nos elementos vindos do CMS). .pub-corpo-content segue
        com escopo, então as regras não vazam para o resto do site. */
-    .pub-corpo-content { line-height: 1.80; color: var(--neutral-700); }
+    .pub-corpo-content { line-height: 1.80; color: var(--neutral-700); overflow-wrap: break-word; word-break: break-word; }
     .pub-corpo-content :global(p) { font-size: 17px; margin-bottom: 24px; }
     .pub-corpo-content :global(p:last-child) { margin-bottom: 0; }
     .pub-corpo-content :global(h2) {
@@ -225,6 +225,16 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
     }
     .pub-corpo-content :global(.pub-codigo-embutido) { margin: 32px 0; max-width: 100%; overflow-x: auto; }
     .pub-corpo-content :global(.pub-codigo-embutido img) { margin: 0; }
+    /* Embeds (custom code): iframe ocupa a largura do conteúdo. Altura fica
+       por conta do embed; para responsivo use wrapper com aspect-ratio. */
+    .pub-corpo-content :global(iframe) {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      border: 0;
+      margin: 32px 0;
+    }
+    .pub-corpo-content :global(.pub-codigo-embutido iframe) { margin: 0; }
 
     /* Sticky reading bar */
     .pub-sticky-bar {
@@ -271,7 +281,7 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
     .pub-sticky-back:hover { color: var(--gold-400); }
     .pub-sticky-title {
       font-family: 'Spectral', serif;
-      font-size: 15px;
+      font-size: 17px;
       font-weight: 400;
       color: rgba(255,255,255,0.85);
       white-space: nowrap;
@@ -300,24 +310,34 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       .pub-corpo-box { padding: 32px 24px; border-radius: 12px; }
       .pub-corpo-content :global(.pub-figura) { margin: 24px 0; }
       .pub-corpo-content :global(p), .pub-corpo-content :global(li) { font-size: 16px; }
+      .pub-corpo-content :global(h2) { font-size: 23px; margin: 36px 0 16px; }
+      .pub-corpo-content :global(h3) { font-size: 19px; margin: 28px 0 12px; }
       .pub-sticky-inner {
-        grid-template-columns: auto 1fr;
+        position: relative;
+        grid-template-columns: 1fr;
         padding: 10px 20px;
-        gap: 12px;
+        gap: 0;
       }
       .pub-sticky-date { display: none; }
-      .pub-sticky-title { font-size: 13px; text-align: left; }
+      .pub-sticky-back-label { display: none; }
+      .pub-sticky-back {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+      .pub-sticky-title { font-size: 15px; text-align: center; padding: 0 28px; }
     }
   </style>
 
   <!-- Sticky reading bar -->
   <div class="pub-sticky-bar" id="pubStickyBar" aria-hidden="true">
     <div class="pub-sticky-inner">
-      <a href="/publicacoes" class="pub-sticky-back">
+      <a href="/publicacoes" class="pub-sticky-back" aria-label="Voltar para Publicações">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="15 18 9 12 15 6"/>
         </svg>
-        Publicações
+        <span class="pub-sticky-back-label">Publicações</span>
       </a>
       <p class="pub-sticky-title">{pub.titulo}</p>
       <span class="pub-sticky-date">{formatarData(pub.data)}</span>
@@ -365,13 +385,24 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       const bar = document.getElementById('pubStickyBar');
       const header = document.getElementById('pubHeader');
       const navbar = document.querySelector('.navbar');
-      const navH = navbar ? navbar.offsetHeight : 68;
-      const barH = bar ? bar.offsetHeight : 48;
-      const scrollOffset = navH + barH + 56;
+      let scrollOffset = 160;
+
+      // Recalcula a posição da barra colada à navbar. Usa getBoundingClientRect
+      // (altura fracionária) + 1px de sobreposição: a barra fica atrás da navbar
+      // (z-index menor), fechando o hairline transparente por onde o conteúdo
+      // aparecia. Refeito no resize porque a navbar muda de altura no breakpoint.
+      function posicionarBarra() {
+        const navH = navbar ? navbar.getBoundingClientRect().height : 68;
+        const barH = bar ? bar.offsetHeight : 48;
+        scrollOffset = Math.round(navH) + barH + 56;
+        document.documentElement.style.setProperty('--scroll-offset', scrollOffset + 'px');
+        if (bar) bar.style.top = (Math.round(navH) - 1) + 'px';
+      }
 
       if (bar && header) {
-        bar.style.top = navH + 'px';
-        document.documentElement.style.setProperty('--scroll-offset', scrollOffset + 'px');
+        posicionarBarra();
+        window.addEventListener('resize', posicionarBarra, { passive: true });
+        window.addEventListener('load', posicionarBarra);
         new IntersectionObserver(function ([entry]) {
           const gone = !entry.isIntersecting && entry.boundingClientRect.top < 0;
           bar.classList.toggle('visible', gone);
