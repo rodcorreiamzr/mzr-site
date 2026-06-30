@@ -1,6 +1,6 @@
 import { defineConfig } from 'sanity';
 import { structureTool } from 'sanity/structure';
-import { publicacao } from './src/sanity/schemaTypes/publicacao';
+import { schemaTypes } from './src/sanity/schemaTypes';
 
 export default defineConfig({
   projectId: 'xe11jg20',
@@ -8,6 +8,6 @@ export default defineConfig({
   title: 'MZR Family Office',
   plugins: [structureTool()],
   schema: {
-    types: [publicacao],
+    types: schemaTypes,
   },
 });

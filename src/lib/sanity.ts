@@ -52,3 +52,30 @@ export async function getUltimasPublicacoes(limit: number = 3) {
     }
   `, { limit });
 }
+
+// Documentos de fundos (lâminas, prestação de contas, fatos relevantes) por fundoId.
+// Só inclui itens com PDF anexado OU URL externa. Retorna mapa { fundoId: { documentos, fatosRelevantes } }.
+export async function getFundoDocumentos() {
+  const docs = await client.fetch(`
+    *[_type == "fundoDocumentos"]{
+      fundoId,
+      "documentos": documentos[defined(arquivo) || defined(urlExterna)]{
+        label,
+        "url": coalesce(arquivo.asset->url, urlExterna)
+      },
+      "fatosRelevantes": fatosRelevantes[defined(arquivo) || defined(urlExterna)]{
+        label,
+        "url": coalesce(arquivo.asset->url, urlExterna)
+      }
+    }
+  `);
+  const mapa: Record<string, { documentos: any[]; fatosRelevantes: any[] }> = {};
+  for (const d of docs || []) {
+    if (!d?.fundoId) continue;
+    mapa[d.fundoId] = {
+      documentos: d.documentos || [],
+      fatosRelevantes: d.fatosRelevantes || [],
+    };
+  }
+  return mapa;
+}
