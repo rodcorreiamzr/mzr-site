@@ -1,10 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
-import { getUltimasPublicacoes, getFundoDocumentos, getUltimaPrestacaoContas } from '../lib/sanity';
+import { getUltimasPublicacoes, getFundoDocumentos, getPrestacaoContas } from '../lib/sanity';
 const publicacoes = await getUltimasPublicacoes(3);
 const fundoDocs = await getFundoDocumentos();
-const prestacao = await getUltimaPrestacaoContas();
-const prestacaoUrl = prestacao?.slug ? `/prestacao-de-contas/${prestacao.slug}` : null;
+const prestacao = await getPrestacaoContas();
+const prestacaoUrl = prestacao ? '/prestacao-de-contas' : null;
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr + 'T00:00:00');

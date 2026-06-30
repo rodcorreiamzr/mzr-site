@@ -80,42 +80,26 @@ export async function getFundoDocumentos() {
   return mapa;
 }
 
-// Prestação de Contas do Ciclo Olímpico.
-export async function getPrestacoesContas() {
+// Prestação de Contas do Ciclo Olímpico — PÁGINA ÚNICA. Retorna o registro
+// (ou null), com a tabela e as URLs das notas fiscais (PDFs) resolvidas.
+export async function getPrestacaoContas() {
   return client.fetch(`
-    *[_type == "prestacaoContas"] | order(data desc) {
-      _id,
+    *[_type == "prestacaoContas"][0] {
       titulo,
-      periodo,
-      "slug": slug.current,
-      data
-    }
-  `);
-}
-
-export async function getPrestacaoContasBySlug(slug: string) {
-  return client.fetch(`
-    *[_type == "prestacaoContas" && slug.current == $slug][0] {
-      _id,
-      titulo,
-      periodo,
-      "slug": slug.current,
-      data,
+      notaRodape,
+      "ogImagemUrl": ogImagem.asset->url,
       corpo[] {
         ...,
         "assetUrl": asset->url
       },
-      "ogImagemUrl": ogImagem.asset->url
-    }
-  `, { slug });
-}
-
-// Mais recente — usada para linkar a partir do modal do fundo Ciclo Olímpico.
-export async function getUltimaPrestacaoContas() {
-  return client.fetch(`
-    *[_type == "prestacaoContas"] | order(data desc) [0] {
-      titulo,
-      "slug": slug.current
+      tabela[] {
+        periodo,
+        faturamentoTotal,
+        despesasOperacionais,
+        faturamentoAntesIR,
+        valorInvestimentoEsporte,
+        "notaFiscalUrl": notaFiscal.asset->url
+      }
     }
   `);
 }

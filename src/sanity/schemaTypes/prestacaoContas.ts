@@ -1,8 +1,41 @@
 import { defineField, defineType } from 'sanity';
 
-// Prestação de Contas do Ciclo Olímpico — página dedicada com conteúdo rico.
-// Coleção: um registro por período (ex: 2025, 1º Semestre 2026...). O modal do
-// fundo Ciclo Olímpico linka automaticamente para a prestação mais recente.
+// Linha da tabela de prestação de contas — um período com seus valores + a nota fiscal (PDF).
+const linhaPrestacao = {
+  type: 'object',
+  name: 'linhaPrestacao',
+  title: 'Linha (Período)',
+  fields: [
+    {
+      name: 'periodo',
+      title: 'Período',
+      type: 'string',
+      description: 'Ex: "Jul - Dez 22", "1T 2023".',
+      validation: (Rule: any) => Rule.required(),
+    },
+    { name: 'faturamentoTotal', title: 'Faturamento Total', type: 'string', description: 'Cole o valor formatado, ex: "R$ 39.720,27".' },
+    { name: 'despesasOperacionais', title: 'Despesas Operacionais', type: 'string', description: 'Ex: "R$ 4.672,99". Use ** ou * se houver nota de rodapé.' },
+    { name: 'faturamentoAntesIR', title: 'Faturamento antes do IR', type: 'string' },
+    { name: 'valorInvestimentoEsporte', title: 'Valor de Investimento no Esporte', type: 'string' },
+    {
+      name: 'notaFiscal',
+      title: 'Comprovante (Nota Fiscal) — PDF',
+      type: 'file',
+      options: { accept: '.pdf' },
+      description: 'Suba o PDF da nota fiscal deste período. Vira o botão "Download" na linha.',
+    },
+  ],
+  preview: {
+    select: { title: 'periodo', subtitle: 'faturamentoTotal' },
+    prepare({ title, subtitle }: { title: string; subtitle?: string }) {
+      return { title: title || 'Período', subtitle: subtitle || '' };
+    },
+  },
+};
+
+// Prestação de Contas do Ciclo Olímpico — PÁGINA ÚNICA (não coleção).
+// Conteúdo rico (título, fotos, texto) + a tabela estruturada por período.
+// Manter apenas UM registro deste tipo.
 export const prestacaoContas = defineType({
   name: 'prestacaoContas',
   title: 'Prestação de Contas (Ciclo Olímpico)',
@@ -12,28 +45,6 @@ export const prestacaoContas = defineType({
       name: 'titulo',
       title: 'Título',
       type: 'string',
-      description: 'Ex: "Prestação de Contas 2025".',
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'periodo',
-      title: 'Período',
-      type: 'string',
-      description: 'Rótulo curto exibido acima do título (ex: "2025", "1º Semestre 2026"). Opcional.',
-    }),
-    defineField({
-      name: 'slug',
-      title: 'Slug (URL)',
-      type: 'slug',
-      options: { source: 'titulo' },
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'data',
-      title: 'Data',
-      type: 'date',
-      options: { dateFormat: 'DD/MM/YYYY' },
-      description: 'Usada para ordenar — a mais recente é a que o modal do fundo exibe.',
       validation: (Rule) => Rule.required(),
     }),
     defineField({
@@ -45,7 +56,7 @@ export const prestacaoContas = defineType({
     }),
     defineField({
       name: 'corpo',
-      title: 'Conteúdo',
+      title: 'Conteúdo (texto e fotos)',
       type: 'array',
       of: [
         {
@@ -84,15 +95,7 @@ export const prestacaoContas = defineType({
           type: 'object',
           name: 'codigoEmbutido',
           title: 'Código / HTML embutido',
-          fields: [
-            {
-              name: 'codigo',
-              title: 'Código',
-              type: 'text',
-              rows: 6,
-              description: 'Cole aqui HTML, iframe, script de gráfico, etc.',
-            },
-          ],
+          fields: [{ name: 'codigo', title: 'Código', type: 'text', rows: 6, description: 'Cole aqui HTML, iframe, gráfico, etc.' }],
           preview: {
             select: { title: 'codigo' },
             prepare({ title }: { title: string }) {
@@ -102,11 +105,25 @@ export const prestacaoContas = defineType({
         },
       ],
     }),
-  ],
-  orderings: [
-    { title: 'Data (mais recente)', name: 'dataDesc', by: [{ field: 'data', direction: 'desc' }] },
+    defineField({
+      name: 'tabela',
+      title: 'Tabela de Prestação de Contas',
+      type: 'array',
+      of: [linhaPrestacao],
+      description: 'Uma linha por período. No mobile vira acordeão (toca pra expandir).',
+    }),
+    defineField({
+      name: 'notaRodape',
+      title: 'Nota de rodapé da tabela',
+      type: 'text',
+      rows: 2,
+      description: 'Texto explicativo dos asteriscos (* e **) exibido abaixo da tabela.',
+    }),
   ],
   preview: {
-    select: { title: 'titulo', subtitle: 'periodo', media: 'ogImagem' },
+    select: { title: 'titulo', media: 'ogImagem' },
+    prepare({ title, media }: { title: string; media?: any }) {
+      return { title: title || 'Prestação de Contas', subtitle: 'Ciclo Olímpico', media };
+    },
   },
 });
