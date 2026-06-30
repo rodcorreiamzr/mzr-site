@@ -32,10 +32,7 @@ export async function getPublicacaoBySlug(slug: string) {
       data,
       corpo[] {
         ...,
-        _type == "image" => {
-          ...,
-          asset->
-        }
+        "assetUrl": asset->url
       },
       "ogImagemUrl": ogImagem.asset->url
     }

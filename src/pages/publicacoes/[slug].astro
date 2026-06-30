@@ -50,8 +50,9 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       codigoEmbutido: ({ value }: any) =>
         `<div class="pub-codigo-embutido">${value.codigo || ''}</div>`,
       image: ({ value }: any) => {
-        const src = value?.asset?.url || '';
+        const src = value?.assetUrl || '';
         const legenda = value?.legenda || '';
+        if (!src) return '';
         return `<figure class="pub-figura">
           <img src="${src}" alt="${legenda}" />
           ${legenda ? `<figcaption class="pub-legenda">${legenda}</figcaption>` : ''}
