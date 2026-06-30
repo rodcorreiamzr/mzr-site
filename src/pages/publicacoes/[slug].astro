@@ -128,14 +128,9 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
     .pub-corpo-box {
       background: #fff;
       border-radius: 16px;
-      padding: 56px 0;
+      padding: 56px 64px;
       box-shadow: 0 2px 24px rgba(29,53,87,0.06);
-      overflow: hidden;
     }
-    .pub-corpo-content {
-      padding: 0 64px;
-    }
-
     /* TOC */
     .pub-toc {
       position: sticky;
@@ -202,9 +197,9 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       font-style: italic;
       font-size: 18px;
     }
-    .pub-corpo-content img { width: 100%; max-width: 100%; margin: 32px 0; display: block; }
-    .pub-figura { margin: 32px -64px; }
-    .pub-figura img { width: 100%; display: block; }
+    .pub-corpo-content img { width: 100%; max-width: 100%; height: auto; margin: 32px 0; display: block; }
+    .pub-figura { margin: 32px 0; }
+    .pub-figura img { width: 100%; max-width: 100%; height: auto; display: block; }
     .pub-legenda {
       font-size: 13px !important;
       color: var(--neutral-400) !important;
@@ -287,9 +282,8 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       .pub-interna-header { padding: 56px 0 48px; }
       .pub-layout { grid-template-columns: 1fr; }
       .pub-toc { display: none; }
-      .pub-corpo-box { padding: 32px 0; border-radius: 12px; }
-      .pub-corpo-content { padding: 0 24px; }
-      .pub-figura { margin: 24px -24px; }
+      .pub-corpo-box { padding: 32px 24px; border-radius: 12px; }
+      .pub-figura { margin: 24px 0; }
       .pub-corpo-content p, .pub-corpo-content li { font-size: 16px; }
       .pub-sticky-inner {
         grid-template-columns: auto 1fr;
