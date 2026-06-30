@@ -198,9 +198,9 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       font-style: italic;
       font-size: 18px;
     }
-    .pub-corpo-content img { width: 100%; margin: 32px 0; }
-    .pub-figura { margin: 32px 0; }
-    .pub-figura img { width: 100%; margin: 0; }
+    .pub-corpo-content img { width: 100%; margin: 32px 0; display: block; }
+    .pub-figura { margin: 32px -64px; }
+    .pub-figura img { width: 100%; display: block; }
     .pub-legenda {
       font-size: 13px !important;
       color: var(--neutral-400) !important;
@@ -284,6 +284,7 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       .pub-layout { grid-template-columns: 1fr; }
       .pub-toc { display: none; }
       .pub-corpo-box { padding: 32px 24px; border-radius: 12px; }
+      .pub-figura { margin: 24px -24px; }
       .pub-corpo-content p, .pub-corpo-content li { font-size: 16px; }
       .pub-sticky-inner {
         grid-template-columns: auto 1fr;
@@ -364,17 +365,27 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
         }, { threshold: 0 }).observe(header);
       }
 
-      // TOC scroll spy
+      // TOC scroll spy + click
       const tocLinks = document.querySelectorAll('.pub-toc-link');
       if (!tocLinks.length) return;
       const headingEls = Array.from(document.querySelectorAll('.pub-corpo-content h2[id]'));
 
+      tocLinks.forEach(function(link) {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          var target = document.getElementById(this.dataset.id);
+          if (!target) return;
+          var top = target.getBoundingClientRect().top + window.scrollY - scrollOffset;
+          window.scrollTo({ top: top, behavior: 'smooth' });
+        });
+      });
+
       function updateToc() {
-        let current = headingEls[0]?.id || '';
-        for (const h of headingEls) {
-          if (h.getBoundingClientRect().top < scrollOffset) current = h.id;
+        var current = headingEls[0]?.id || '';
+        for (var i = 0; i < headingEls.length; i++) {
+          if (headingEls[i].getBoundingClientRect().top < scrollOffset) current = headingEls[i].id;
         }
-        tocLinks.forEach(link => {
+        tocLinks.forEach(function(link) {
           link.classList.toggle('active', link.dataset.id === current);
         });
       }
