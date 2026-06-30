@@ -172,7 +172,7 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       color: var(--navy-700);
       margin: 48px 0 20px;
       line-height: 1.2;
-      scroll-margin-top: 140px;
+      scroll-margin-top: var(--scroll-offset, 160px);
     }
     .pub-corpo-content h3 {
       font-family: 'Spectral', serif;
@@ -181,7 +181,7 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       color: var(--navy-700);
       margin: 36px 0 16px;
       line-height: 1.25;
-      scroll-margin-top: 140px;
+      scroll-margin-top: var(--scroll-offset, 160px);
     }
     .pub-corpo-content strong { color: var(--navy-800); font-weight: 600; }
     .pub-corpo-content em { font-style: italic; }
@@ -349,8 +349,13 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       const bar = document.getElementById('pubStickyBar');
       const header = document.getElementById('pubHeader');
       const navbar = document.querySelector('.navbar');
+      const navH = navbar ? navbar.offsetHeight : 68;
+      const barH = bar ? bar.offsetHeight : 48;
+      const scrollOffset = navH + barH + 24;
+
       if (bar && header) {
-        bar.style.top = (navbar ? navbar.offsetHeight : 68) + 'px';
+        bar.style.top = navH + 'px';
+        document.documentElement.style.setProperty('--scroll-offset', scrollOffset + 'px');
         new IntersectionObserver(function ([entry]) {
           const gone = !entry.isIntersecting && entry.boundingClientRect.top < 0;
           bar.classList.toggle('visible', gone);
@@ -366,7 +371,7 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       function updateToc() {
         let current = headingEls[0]?.id || '';
         for (const h of headingEls) {
-          if (h.getBoundingClientRect().top < 160) current = h.id;
+          if (h.getBoundingClientRect().top < scrollOffset) current = h.id;
         }
         tocLinks.forEach(link => {
           link.classList.toggle('active', link.dataset.id === current);
