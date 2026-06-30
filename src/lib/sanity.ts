@@ -30,7 +30,13 @@ export async function getPublicacaoBySlug(slug: string) {
       tag,
 
       data,
-      corpo,
+      corpo[] {
+        ...,
+        _type == "image" => {
+          ...,
+          asset->
+        }
+      },
       "ogImagemUrl": ogImagem.asset->url
     }
   `, { slug });
