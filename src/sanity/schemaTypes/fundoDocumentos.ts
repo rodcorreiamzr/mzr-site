@@ -64,14 +64,14 @@ export const fundoDocumentos = defineType({
       title: 'Lâminas / Documentos',
       type: 'array',
       of: [documentoLink],
-      description: 'Documentos da tela principal do modal (lâminas, prestação de contas, etc.).',
+      description: 'Lâminas da tela principal do modal. Toda lâmina nova SUBSTITUI a anterior: troque o PDF (ou edite o texto) no mesmo item — não acumula histórico.',
     }),
     defineField({
       name: 'fatosRelevantes',
       title: 'Fatos Relevantes (somente PE/VC)',
       type: 'array',
       of: [documentoLink],
-      description: 'Usado apenas no fundo PE/VC — aparece na sub-tela "Fatos Relevantes". Ignorado nos demais fundos.',
+      description: 'Apenas o fundo PE/VC — aparece na sub-tela "Fatos Relevantes". Aqui os itens ACUMULAM: adicione um novo a cada fato relevante e mantenha os anteriores. Ignorado nos demais fundos.',
     }),
   ],
   preview: {
