@@ -1,0 +1,197 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPublicacoes, getPublicacaoBySlug } from '../../lib/sanity';
+import { toHTML } from '@portabletext/to-html';
+
+export async function getStaticPaths() {
+  const publicacoes = await getPublicacoes();
+  return publicacoes.map((p: any) => ({ params: { slug: p.slug } }));
+}
+
+const { slug } = Astro.params;
+const pub = await getPublicacaoBySlug(slug!);
+
+if (!pub) return Astro.redirect('/publicacoes');
+
+function formatarData(iso: string) {
+  if (!iso) return '';
+  const [ano, mes, dia] = iso.split('-');
+  const meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  return `${parseInt(dia)} de ${meses[parseInt(mes) - 1]} de ${ano}`;
+}
+
+const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
+  components: {
+    block: {
+      legenda: ({ children }: any) => `<p class="pub-legenda">${children}</p>`,
+    },
+    types: {
+      codigoEmbutido: ({ value }: any) =>
+        `<div class="pub-codigo-embutido">${value.codigo || ''}</div>`,
+      image: ({ value }: any) => {
+        const src = value?.asset?.url || '';
+        const legenda = value?.legenda || '';
+        return `<figure class="pub-figura">
+          <img src="${src}" alt="${legenda}" />
+          ${legenda ? `<figcaption class="pub-legenda">${legenda}</figcaption>` : ''}
+        </figure>`;
+      },
+    },
+  },
+}) : '';
+---
+
+<Base
+  title={`${pub.titulo} — MZR Family Office`}
+  description={pub.resumo || ''}
+  ogImage={pub.ogImagemUrl || undefined}
+  ogType="article"
+>
+
+  <style>
+    .pub-interna-header {
+      background: var(--navy-700);
+      padding: 72px 0 64px;
+    }
+    .pub-interna-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.45);
+      text-decoration: none;
+      margin-bottom: 32px;
+      transition: color 0.2s;
+    }
+    .pub-interna-back:hover { color: var(--gold-400); }
+    .pub-interna-tag {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold-400);
+      margin-bottom: 16px;
+    }
+    .pub-interna-title {
+      font-family: 'Spectral', serif;
+      font-weight: 400;
+      font-size: clamp(28px, 3vw, 44px);
+      color: #fff;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+    .pub-interna-meta {
+      font-size: 13px;
+      color: rgba(255,255,255,0.40);
+    }
+
+    .pub-interna-corpo {
+      background: var(--neutral-100);
+      padding: 48px 0 96px;
+    }
+    .pub-interna-corpo .section-inner {
+      max-width: 860px;
+    }
+    .pub-corpo-box {
+      background: #fff;
+      border-radius: 16px;
+      padding: 56px 64px;
+      box-shadow: 0 2px 24px rgba(29,53,87,0.06);
+    }
+
+    /* Estilo do conteúdo rich text */
+    .pub-corpo-content { line-height: 1.80; color: var(--neutral-700); }
+    .pub-corpo-content p { font-size: 17px; margin-bottom: 24px; }
+    .pub-corpo-content p:last-child { margin-bottom: 0; }
+    .pub-corpo-content h2 {
+      font-family: 'Spectral', serif;
+      font-weight: 400;
+      font-size: 28px;
+      color: var(--navy-700);
+      margin: 48px 0 20px;
+      line-height: 1.2;
+    }
+    .pub-corpo-content h3 {
+      font-family: 'Spectral', serif;
+      font-weight: 400;
+      font-size: 22px;
+      color: var(--navy-700);
+      margin: 36px 0 16px;
+      line-height: 1.25;
+    }
+    .pub-corpo-content strong { color: var(--navy-800); font-weight: 600; }
+    .pub-corpo-content em { font-style: italic; }
+    .pub-corpo-content a { color: var(--gold-500); text-decoration: underline; }
+    .pub-corpo-content a:hover { color: var(--gold-400); }
+    .pub-corpo-content ul, .pub-corpo-content ol { margin: 0 0 24px 24px; }
+    .pub-corpo-content li { font-size: 17px; margin-bottom: 8px; }
+    .pub-corpo-content blockquote {
+      border-left: 3px solid var(--gold-400);
+      padding: 4px 0 4px 24px;
+      margin: 32px 0;
+      color: var(--neutral-500);
+      font-style: italic;
+      font-size: 18px;
+    }
+    .pub-corpo-content img {
+      width: 100%;
+      margin: 32px 0;
+    }
+    .pub-figura {
+      margin: 32px 0;
+    }
+    .pub-figura img {
+      width: 100%;
+      margin: 0;
+    }
+    .pub-legenda {
+      font-size: 13px !important;
+      color: var(--neutral-400) !important;
+      text-align: center;
+      margin-top: 10px !important;
+      margin-bottom: 0 !important;
+      font-style: italic;
+      line-height: 1.5;
+    }
+    .pub-codigo-embutido {
+      margin: 32px 0;
+      overflow-x: auto;
+    }
+
+    @media (max-width: 768px) {
+      .pub-corpo-box { padding: 32px 24px; border-radius: 12px; }
+    }
+
+    @media (max-width: 768px) {
+      .pub-interna-header { padding: 56px 0 48px; }
+      .pub-corpo-content p, .pub-corpo-content li { font-size: 16px; }
+    }
+  </style>
+
+  <!-- Header -->
+  <div class="pub-interna-header">
+    <div class="section-inner">
+      <a href="/publicacoes" class="pub-interna-back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Publicações
+      </a>
+      <div class="pub-interna-tag">{pub.tag}</div>
+      <h1 class="pub-interna-title">{pub.titulo}</h1>
+      <div class="pub-interna-meta">{formatarData(pub.data)}</div>
+    </div>
+  </div>
+
+  <!-- Conteúdo -->
+  <section class="pub-interna-corpo">
+    <div class="section-inner">
+      <div class="pub-corpo-box">
+        <div class="pub-corpo-content" set:html={corpoHTML} />
+      </div>
+    </div>
+  </section>
+
+</Base>

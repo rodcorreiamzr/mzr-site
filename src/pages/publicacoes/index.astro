@@ -1,0 +1,164 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPublicacoes } from '../../lib/sanity';
+
+const publicacoes = await getPublicacoes();
+
+function formatarData(iso: string) {
+  if (!iso) return '';
+  const [ano, mes, dia] = iso.split('-');
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return `${dia} ${meses[parseInt(mes) - 1]} ${ano}`;
+}
+---
+
+<Base title="Publicações — MZR Family Office" description="Cartas mensais, análises e leituras recomendadas pela MZR Family Office.">
+
+  <style>
+    .pub-page-header {
+      background: var(--navy-700);
+      padding: 72px 0 64px;
+    }
+    .pub-page-header .overline { color: rgba(201,167,124,0.80); }
+    .pub-page-header .section-title { color: #fff; margin-bottom: 0; }
+
+    .pub-filtros-wrap {
+      background: var(--neutral-100);
+      border-bottom: 1px solid var(--neutral-200);
+      position: sticky;
+      top: 57px;
+      z-index: 100;
+    }
+    .pub-filtros {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 48px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-top: 20px;
+      padding-bottom: 20px;
+    }
+    .pub-filtros::-webkit-scrollbar { display: none; }
+    .filtro-btn {
+      flex-shrink: 0;
+      font-family: 'Work Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 8px 18px;
+      border-radius: 100px;
+      border: 1px solid var(--neutral-200);
+      background: transparent;
+      color: var(--neutral-500);
+      cursor: pointer;
+      transition: background 0.18s, color 0.18s, border-color 0.18s;
+    }
+    .filtro-btn:hover {
+      border-color: var(--navy-300);
+      color: var(--navy-700);
+    }
+    .filtro-btn.active {
+      background: var(--navy-700);
+      border-color: var(--navy-700);
+      color: #fff;
+    }
+
+    .pub-listagem {
+      background: var(--neutral-100);
+      padding: 64px 0 96px;
+    }
+    .pub-listagem-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+
+    .pub-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+
+    .pub-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 80px 0;
+      color: var(--neutral-400);
+      font-size: 15px;
+    }
+
+    @media (max-width: 1024px) {
+      .pub-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .pub-page-header { padding: 56px 0 48px; }
+      .pub-filtros { padding: 16px 24px; }
+      .pub-listagem-inner { padding: 0 24px; }
+      .pub-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <div class="pub-page-header">
+    <div class="section-inner">
+      <div class="overline">Publicações</div>
+      <h1 class="section-title">Cartas Mensais e Análises</h1>
+    </div>
+  </div>
+
+  <div class="pub-filtros-wrap">
+    <div class="pub-filtros">
+      <button class="filtro-btn active" data-filtro="todos">Todos</button>
+      <button class="filtro-btn" data-filtro="Cartas Mensais">Cartas Mensais</button>
+      <button class="filtro-btn" data-filtro="Analises">Análises</button>
+      <button class="filtro-btn" data-filtro="Livros">Livros</button>
+    </div>
+  </div>
+
+  <section class="pub-listagem">
+    <div class="pub-listagem-inner">
+      {publicacoes.length === 0 ? (
+        <div class="pub-grid">
+          <div class="pub-empty">Nenhuma publicação disponível ainda.</div>
+        </div>
+      ) : (
+        <div class="pub-grid" id="pubGrid">
+          {publicacoes.map((p: any, i: number) => (
+            <a
+              href={`/publicacoes/${p.slug}`}
+              class="pub-card secondary reveal"
+              data-tag={p.tag}
+              style={`transition-delay: ${(i % 3) * 0.1}s`}
+            >
+              <div class="pub-card-tag">{p.tag}</div>
+              <div class="pub-card-title">{p.titulo}</div>
+              <div class="pub-card-meta" style="margin-top: auto;">{formatarData(p.data)}</div>
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+
+  <script>
+    const btns = document.querySelectorAll('.filtro-btn');
+    const cards = document.querySelectorAll<HTMLElement>('#pubGrid .pub-card');
+
+    btns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        btns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const filtro = (btn as HTMLElement).dataset.filtro;
+
+        cards.forEach((card) => {
+          const tag = card.dataset.tag || '';
+          card.style.display = (filtro === 'todos' || tag === filtro) ? '' : 'none';
+        });
+      });
+    });
+  </script>
+
+</Base>

@@ -1,0 +1,29 @@
+{
+  "name": "mzr-site",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@portabletext/to-html": "^2.0.0",
+    "@sanity/astro": "^3.4.1",
+    "@sanity/client": "^7.14.1",
+    "@sanity/image-url": "^1.0.0",
+    "astro": "^5.0.0",
+    "sanity": "^6.2.0",
+    "styled-components": "^6.4.3"
+  },
+  "allowScripts": {
+    "esbuild@0.27.7": true,
+    "esbuild@0.25.12": true,
+    "sharp@0.34.5": true,
+    "esbuild@0.28.1": true,
+    "fsevents@2.3.3": true
+  },
+  "devDependencies": {
+    "@sanity/cli": "^7.4.0"
+  }
+}

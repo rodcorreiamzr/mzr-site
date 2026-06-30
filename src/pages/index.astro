@@ -1,0 +1,1516 @@
+---
+import Base from '../layouts/Base.astro';
+import { getUltimasPublicacoes } from '../lib/sanity';
+const publicacoes = await getUltimasPublicacoes(3);
+
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+}
+---
+
+<Base title="MZR Family Office">
+
+<style is:global>
+
+  /* ── Navbar logo: invisível no hero, aparece ao rolar ── */
+  .navbar-logo { opacity: 0; }
+
+  /* ── Botões ── */
+  .btn-primary {
+    background: var(--gold-400);
+    color: var(--navy-800);
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.01em;
+    padding: 14px 32px;
+    border-radius: 8px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-primary:hover { background: var(--gold-500); transform: translateY(-1px); }
+  .btn-primary svg { transition: transform 0.2s ease; }
+  .btn-primary:hover svg { transform: translateX(4px); }
+  .btn-text-gold {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold-400);
+    text-decoration: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0;
+    transition: opacity 0.2s;
+  }
+  .btn-text-gold:hover { opacity: 0.75; }
+  .btn-text-gold svg { transition: transform 0.2s ease; }
+  .btn-text-gold:hover svg { transform: translateX(4px); }
+  .btn-secondary {
+    background: transparent;
+    color: rgba(255,255,255,0.85);
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    padding: 14px 32px;
+    border-radius: 8px;
+    text-decoration: none;
+    border: 1px solid rgba(255,255,255,0.25);
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-secondary:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+
+  /* ── Divider ── */
+  .divider { height: 1px; background: var(--neutral-200); margin: 0 48px; }
+  @media (max-width: 768px) { .divider { margin: 0 24px; } }
+
+  /* ── Keyframes exclusivos da home ── */
+  @keyframes letterIn {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes revealLTR {
+    from { clip-path: inset(0 100% 0 0); }
+    to   { clip-path: inset(0 0% 0 0); }
+  }
+  @keyframes scrollDrop {
+    0%   { top: -100%; }
+    50%  { top: 100%; }
+    100% { top: 100%; }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: var(--navy-700);
+  }
+  .hero-video {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0.35;
+    z-index: 0;
+  }
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(29,53,87,0.10) 0%, rgba(29,53,87,0.05) 40%, rgba(29,53,87,0.14) 100%);
+    z-index: 1;
+  }
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100%;
+    max-width: 1200px;
+    padding: 0 48px;
+    margin: 0 auto;
+  }
+  .hero-logo-svg {
+    width: clamp(110px, 14vw, 190px);
+    height: auto;
+    display: block;
+    transform: translateX(-13.97%);
+  }
+  .logo-g-M { opacity: 0; animation: fadeIn 0.43s ease 0.26s forwards; }
+  .logo-g-Z { opacity: 0; animation: fadeIn 0.43s ease 0.60s forwards; }
+  .logo-g-R { opacity: 0; animation: fadeIn 0.43s ease 0.94s forwards; }
+  .logo-g-chevron { opacity: 0; animation: fadeIn 0.43s ease 1.28s forwards; }
+  .logo-g-line   { animation: revealLTR 0.38s ease-out 1.62s both; }
+  .logo-g-family { animation: revealLTR 0.60s ease-out 1.83s both; }
+  .logo-g-office { animation: revealLTR 0.60s ease-out 2.04s both; }
+  .hero-tagline { max-width: 640px; }
+  .hero-tagline h1 { opacity: 0; animation: fadeIn 1.8s ease 2.3s forwards; }
+  .hero-tagline p {
+    font-size: clamp(15px, 1.8vw, 18px);
+    font-weight: 400;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.65;
+    letter-spacing: -0.005em;
+    opacity: 0;
+    animation: fadeIn 1.6s ease 3.3s forwards;
+  }
+  .hero-scroll {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 3s forwards;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .hero-scroll span {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    font-weight: 600;
+    transition: color 0.25s ease;
+  }
+  .hero-scroll:hover span { color: var(--gold-400); }
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: rgba(255,255,255,0.20);
+    position: relative;
+    overflow: hidden;
+    transition: background 0.25s ease;
+  }
+  .hero-scroll:hover .scroll-line { background: rgba(201,167,124,0.30); }
+  .scroll-line::after {
+    content: '';
+    position: absolute;
+    top: -100%; left: 0;
+    width: 100%; height: 100%;
+    background: var(--gold-400);
+    animation: scrollDrop 1.8s ease-in-out 3.2s infinite;
+  }
+
+  /* ── Strip Instituições ── */
+  .strip-institucoes {
+    background: var(--navy-800);
+    padding: 36px 0;
+    overflow: hidden;
+  }
+  .strip-institucoes-label {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.28);
+    margin-bottom: 24px;
+  }
+  .strip-track-outer {
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 10%, #000 90%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, #000 10%, #000 90%, transparent 100%);
+  }
+  .strip-track {
+    display: flex;
+    width: max-content;
+    animation: marquee 36s linear infinite;
+  }
+  .strip-track:hover { animation-play-state: paused; }
+  .strip-logos { display: flex; align-items: center; gap: 0; }
+  .inst-logo {
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    color: rgba(255,255,255,0.32);
+    white-space: nowrap;
+    user-select: none;
+    padding: 0 40px;
+    position: relative;
+  }
+  .inst-logo::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 3px; height: 3px;
+    border-radius: 50%;
+    background: rgba(201,167,124,0.30);
+  }
+
+  /* ── Quem Somos ── */
+  #quem-somos { background: var(--neutral-100); padding: 72px 0 48px; position: relative; overflow: hidden; }
+  #quem-somos .section-inner { position: relative; z-index: 1; }
+  .qs-chevron-bg {
+    position: absolute;
+    right: -3%; top: 50%;
+    transform: translateY(-50%);
+    width: 44%; height: auto;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .quem-somos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+    margin-top: 40px;
+  }
+  .quem-somos-text p { font-size: 16px; line-height: 1.80; color: var(--neutral-700); max-width: 520px; }
+  .quem-somos-text p + p { margin-top: 20px; }
+  .quem-somos-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .stat-card { background: var(--white); border: 1px solid var(--neutral-200); border-radius: 12px; padding: 28px; }
+  .stat-value { font-size: 40px; font-weight: 700; color: var(--navy-700); line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; margin-bottom: 6px; }
+  .stat-value span { font-size: 22px; font-weight: 600; color: var(--gold-600); }
+  .stat-label { font-size: 13px; color: var(--neutral-400); line-height: 1.4; }
+  .qs-expand-trigger {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 36px 0 0;
+    cursor: pointer;
+    background: none;
+    border: none;
+    width: 100%;
+    font-family: 'Work Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--navy-700);
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    position: relative;
+    z-index: 2;
+  }
+  .qs-expand-trigger:hover { opacity: 0.9; }
+  .qs-expand-arrow { transition: transform 0.45s ease; }
+  .qs-expand-trigger.open .qs-expand-arrow { transform: rotate(180deg); }
+  .qs-expand-trigger.dark { color: rgba(255,255,255,0.55); }
+  .qs-expandable { max-height: 0; overflow: hidden; transition: max-height 0.75s ease; background: var(--neutral-100); }
+  .qs-expandable.open { max-height: 1100px; }
+  .qs-expand-content { padding: 24px 0 72px; }
+  .qs-expand-content p { font-size: clamp(15px, 1.3vw, 17px); color: var(--navy-700); line-height: 1.80; max-width: 780px; opacity: 0.85; }
+  .qs-expand-subtitle { font-family: 'Spectral', serif; font-weight: 400; font-size: clamp(20px, 2vw, 28px); color: var(--navy-800); margin-top: 52px; margin-bottom: 28px; }
+  .qs-carousel { position: relative; overflow: hidden; border-radius: 12px; max-width: 860px; }
+  .qs-carousel-track { display: flex; transition: transform 0.5s ease; }
+  .qs-carousel-slide { flex: 0 0 100%; }
+  .qs-carousel-slide img { width: 100%; height: 460px; object-fit: cover; display: block; }
+  .qs-carousel-btn {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    background: rgba(255,255,255,0.82); border: none; border-radius: 50%;
+    width: 42px; height: 42px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s; color: var(--navy-800);
+  }
+  .qs-carousel-btn:hover { background: #fff; }
+  .qs-carousel-prev { left: 14px; }
+  .qs-carousel-next { right: 14px; }
+  .qs-carousel-dots { display: flex; justify-content: center; gap: 8px; margin-top: 14px; max-width: 860px; }
+  .qs-carousel-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--navy-700); opacity: 0.2;
+    cursor: pointer; border: none; padding: 0; transition: opacity 0.25s;
+  }
+  .qs-carousel-dot.active { opacity: 0.65; }
+  @media (max-width: 768px) { .qs-carousel-slide img { height: 240px; } }
+
+  /* ── Serviços ── */
+  #servicos { background: var(--white); position: relative; overflow: hidden; }
+  #servicos .section-inner { position: relative; z-index: 1; }
+  .servicos-360-bg { position: absolute; right: -6%; top: 50%; transform: translateY(-50%); width: 62%; height: auto; opacity: 0; pointer-events: none; z-index: 0; will-change: opacity; }
+  .servicos-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 56px; }
+  .servico-card { background: var(--neutral-50); border: 1px solid var(--neutral-200); border-radius: 12px; padding: 28px 28px 58px; position: relative; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s, background 0.2s; }
+  .servico-card:hover { border-color: var(--navy-300); box-shadow: 0 4px 24px rgba(29,53,87,0.08); }
+  .servico-card.is-open { background: var(--navy-800); border-color: var(--navy-800); }
+  .servico-card-top { display: flex; align-items: center; gap: 14px; }
+  .servico-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--navy-50); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background 0.2s; }
+  .servico-icon svg { stroke: var(--navy-700); transition: stroke 0.2s; }
+  .servico-card.is-open .servico-icon { background: rgba(255,255,255,0.12); }
+  .servico-card.is-open .servico-icon svg { stroke: rgba(255,255,255,0.85); }
+  .servico-card h3 { font-family: 'Work Sans', sans-serif; font-weight: 600; font-size: 15px; color: var(--navy-800); line-height: 1.3; letter-spacing: -0.01em; transition: color 0.2s; }
+  .servico-card.is-open h3 { color: #fff; }
+  .servico-toggle { position: absolute; bottom: 18px; right: 18px; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--neutral-400); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s, border-color 0.2s, color 0.2s; color: var(--neutral-500); padding: 0; }
+  .servico-card:hover .servico-toggle { border-color: var(--navy-400); color: var(--navy-500); }
+  .servico-card.is-open .servico-toggle { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.35); color: #fff; }
+  .servico-toggle-icon { display: flex; align-items: center; justify-content: center; transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+  .servico-card.is-open .servico-toggle-icon { transform: rotate(45deg); }
+  .servico-inline-detail { display: none; }
+  .servicos-detail-panel { display: grid; grid-template-rows: 0fr; background: var(--navy-800); border-radius: 12px; margin-top: 0; transition: grid-template-rows 0.45s cubic-bezier(0.4,0,0.2,1), margin-top 0.3s ease, opacity 0.3s ease; opacity: 0; }
+  .servicos-detail-panel.is-open { grid-template-rows: 1fr; margin-top: 12px; opacity: 1; }
+  .servicos-detail-inner { overflow: hidden; min-height: 0; }
+  .svc-detail-content { display: none; padding: 40px 48px; gap: 56px; }
+  .svc-detail-content.is-active { display: flex; align-items: flex-start; }
+  .svc-detail-left { flex-shrink: 0; width: 210px; }
+  .svc-detail-icon { width: 52px; height: 52px; border-radius: 12px; background: rgba(255,255,255,0.10); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+  .svc-detail-icon svg { stroke: rgba(255,255,255,0.85); }
+  .svc-detail-title { font-family: 'Spectral', serif; font-weight: 400; font-size: 20px; color: #fff; line-height: 1.25; }
+  .svc-detail-subtitle { font-size: 11px; font-weight: 500; color: var(--gold-400); letter-spacing: 0.07em; text-transform: uppercase; margin-top: 6px; }
+  .servico-inline-subtitle { font-size: 11px; font-weight: 500; color: var(--gold-400); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 10px; }
+  .svc-detail-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px; }
+  .svc-detail-list li { display: flex; align-items: flex-start; gap: 12px; color: rgba(255,255,255,0.78); font-size: 14px; line-height: 1.6; }
+  .svc-detail-list li::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--gold-400); margin-top: 7px; flex-shrink: 0; }
+
+  /* ── Diferenciais ── */
+  #diferenciais { background: var(--navy-700); position: relative; overflow: hidden; isolation: isolate; }
+  #diferenciais .section-inner { position: relative; z-index: 1; }
+  #diferenciais .overline { color: var(--gold-400); }
+  #diferenciais .section-title { color: #fff; }
+  #diferenciais .section-lead { color: rgba(255,255,255,0.65); }
+  .diferenciais-dots-bg { position: absolute; right: -2%; top: 0; width: 55%; height: auto; opacity: 0; pointer-events: none; z-index: 0; filter: invert(1); mix-blend-mode: screen; will-change: opacity; }
+  .diferenciais-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; overflow: hidden; margin-top: 56px; }
+  .diferencial-item { background: var(--navy-700); padding: 36px 28px; display: flex; flex-direction: column; gap: 12px; border-left: 2px solid transparent; }
+  .diferencial-item.active { background: var(--navy-800); border-left-color: var(--gold-400); }
+  .diferencial-num { font-size: 10px; font-weight: 600; letter-spacing: 0.22em; color: var(--gold-400); text-transform: uppercase; }
+  .diferencial-title { font-family: 'Spectral', serif; font-weight: 400; font-size: 22px; color: #fff; line-height: 1.25; letter-spacing: -0.01em; }
+  .diferenciais-expandable { max-height: 0; overflow: hidden; transition: max-height 0.75s ease; }
+  .diferenciais-expandable.open { max-height: 600px; }
+  .diferenciais-expand-content { padding: 8px 0 28px; }
+  .diferenciais-expand-content p { font-size: clamp(15px, 1.3vw, 17px); color: rgba(255,255,255,0.72); line-height: 1.80; max-width: 860px; margin-bottom: 20px; }
+  .diferenciais-expand-content ul { padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; max-width: 860px; }
+  .diferenciais-expand-content li { font-size: clamp(15px, 1.3vw, 17px); color: rgba(255,255,255,0.72); line-height: 1.72; padding-left: 18px; position: relative; }
+  .diferenciais-expand-content li::before { content: ''; position: absolute; left: 0; top: 11px; width: 5px; height: 5px; border-radius: 50%; background: var(--gold-400); opacity: 0.7; }
+
+  /* ── Fundos ── */
+  #fundos { background: var(--neutral-50); position: relative; overflow: hidden; isolation: isolate; }
+  #fundos .section-inner { position: relative; z-index: 1; }
+  .fundos-lines-bg { position: absolute; left: -15%; top: 50%; transform: translateY(-50%); width: 128%; height: auto; opacity: 0; pointer-events: none; z-index: 0; mix-blend-mode: multiply; will-change: opacity; }
+  .fundos-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 40px; }
+  .fundos-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .estrategia-card { background: var(--navy-800); border-radius: 12px; padding: 32px 28px; display: flex; flex-direction: column; justify-content: space-between; min-height: 180px; transition: background 0.2s, box-shadow 0.2s; cursor: pointer; }
+  .estrategia-card:hover { background: var(--navy-700); box-shadow: 0 8px 32px rgba(10,23,39,0.18); }
+  .estrategia-card-tag { font-size: 10px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold-400); margin-bottom: 16px; }
+  .estrategia-card-name { font-family: 'Spectral', serif; font-weight: 400; font-size: clamp(20px, 2vw, 26px); color: #fff; line-height: 1.20; letter-spacing: -0.01em; flex: 1; }
+  .estrategia-card-line { width: 28px; height: 2px; background: var(--gold-400); margin-top: 24px; opacity: 0.6; }
+  .fundo-disclaimer { font-size: 11px; color: var(--neutral-400); line-height: 1.6; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--neutral-200); max-width: 720px; }
+  .fundos-expandable { max-height: 0; overflow: hidden; transition: max-height 0.75s ease; }
+  .fundos-expandable.open { max-height: 1200px; }
+  .fundos-expand-content { padding: 8px 0 28px; }
+  .fundos-expand-title { font-family: 'Spectral', serif; font-weight: 400; font-size: clamp(20px, 2vw, 28px); color: var(--navy-800); margin-bottom: 28px; }
+  .fundos-expand-content p { font-size: clamp(15px, 1.3vw, 17px); color: var(--navy-700); line-height: 1.80; max-width: 860px; opacity: 0.85; margin-bottom: 20px; }
+  .fundos-expand-content p:last-of-type { margin-bottom: 0; }
+
+  /* ── Fundo Modal ── */
+  .fundo-modal-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.13); border-radius: 50%; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: rgba(255,255,255,0.50); transition: background 0.2s, color 0.2s; z-index: 10; flex-shrink: 0; }
+  .fundo-modal-nav:hover { background: rgba(255,255,255,0.14); color: #fff; }
+  .fundo-modal-nav-prev { left: 20px; }
+  .fundo-modal-nav-next { right: 20px; }
+  @media (max-width: 780px) { .fundo-modal-nav { display: none; } }
+  #fundoModal.fundo-modal-backdrop { z-index: 1100; background: rgba(10,23,39,0.72); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+  #fundoModal .fundo-modal { padding: 48px 52px; max-width: 680px; transform: translateY(18px); transition: transform 0.28s ease; }
+  #fundoModal.fundo-modal-backdrop.open .fundo-modal { transform: translateY(0); }
+  .fundo-modal-desc { font-size: 15px; color: rgba(255,255,255,0.72); line-height: 1.75; margin-bottom: 36px; }
+  .fundo-modal-docs-label { font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.38); margin-bottom: 16px; }
+  .fundo-modal-docs { display: flex; flex-direction: column; gap: 12px; }
+  .fundo-modal-gestoras { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 4px; }
+  .fundo-modal-gestora-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); border-radius: 6px; padding: 9px 12px; font-size: 13px; color: rgba(255,255,255,0.75); text-align: center; }
+  @media (max-width: 480px) { .fundo-modal-gestoras { grid-template-columns: repeat(2, 1fr); } }
+  .fundo-modal-back { display: flex; align-items: center; gap: 6px; background: none; border: none; color: var(--gold-400); font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; padding: 0; margin-bottom: 28px; opacity: 0.85; transition: opacity 0.18s; }
+  .fundo-modal-back:hover { opacity: 1; }
+  .fundo-modal-sub-subtitle { font-size: 13px; color: rgba(255,255,255,0.48); line-height: 1.55; margin-bottom: 28px; }
+  .fundo-modal-doc-nav { background: none; border: none; padding: 0; cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 10px; color: var(--gold-400); font-size: 14px; font-weight: 500; width: 100%; transition: opacity 0.18s; }
+  .fundo-modal-doc-nav:hover { opacity: 0.72; }
+  .fundo-modal-doc-nav .doc-nav-chevron { margin-left: auto; opacity: 0.55; }
+  .fundo-modal-doc-link { display: flex; align-items: center; gap: 10px; color: var(--gold-400); text-decoration: none; font-size: 14px; font-weight: 500; transition: opacity 0.18s; }
+  .fundo-modal-doc-link:hover { opacity: 0.72; }
+  .fundo-modal-doc-link svg { flex-shrink: 0; opacity: 0.7; }
+  @media (max-width: 600px) { #fundoModal .fundo-modal { padding: 36px 28px; } }
+
+  /* ── Publicações ── */
+  #publicacoes { background: var(--neutral-100); position: relative; overflow: hidden; isolation: isolate; }
+  #publicacoes .section-inner { position: relative; z-index: 1; }
+  .publicacoes-dots-bg { position: absolute; right: -4%; top: 0; width: auto; height: 100%; opacity: 0; pointer-events: none; z-index: 0; mix-blend-mode: multiply; will-change: opacity; }
+  .publicacoes-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px; margin-top: 48px; }
+
+  /* ── Contato ── */
+  #contato { background: var(--navy-900); }
+  #contato .overline { color: var(--gold-400); }
+  #contato .section-title { color: #fff; }
+  #contato .section-lead { color: rgba(255,255,255,0.60); }
+  .contato-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-top: 56px; align-items: start; }
+  .contato-info { display: flex; flex-direction: column; gap: 32px; }
+  .contato-info-item { display: flex; gap: 16px; align-items: flex-start; }
+  .contato-info-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.10); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .contato-info-label { font-size: 10px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(255,255,255,0.30); margin-bottom: 4px; }
+  .contato-info-value { font-size: 15px; color: rgba(255,255,255,0.80); line-height: 1.5; }
+  .contato-address-btn { background: none; border: none; padding: 0; font: inherit; font-size: 15px; color: rgba(255,255,255,0.80); line-height: 1.5; cursor: pointer; text-align: left; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(255,255,255,0.25); transition: color 0.2s, text-decoration-color 0.2s; }
+  .contato-address-btn:hover { color: #fff; text-decoration-color: rgba(255,255,255,0.55); }
+  .map-picker { display: none; flex-direction: column; gap: 4px; margin-top: 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 10px; padding: 6px; width: fit-content; }
+  .map-picker.open { display: flex; }
+  .map-picker-option { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 7px; color: rgba(255,255,255,0.75); text-decoration: none; font-size: 14px; font-weight: 500; transition: background 0.15s, color 0.15s; }
+  .map-picker-option:hover { background: rgba(255,255,255,0.10); color: #fff; }
+  .copy-email-btn { background: none; border: none; cursor: pointer; padding: 2px 4px; color: rgba(255,255,255,0.30); display: inline-flex; align-items: center; position: relative; transition: color 0.2s; flex-shrink: 0; vertical-align: middle; }
+  .copy-email-btn:hover { color: rgba(255,255,255,0.70); }
+  .copy-tooltip { position: absolute; bottom: calc(100% + 7px); left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); color: #fff; font-family: 'Work Sans', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; padding: 5px 10px; border-radius: 6px; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
+  .copy-tooltip.show { opacity: 1; }
+  .form { display: flex; flex-direction: column; gap: 16px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-field { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: rgba(255,255,255,0.45); text-transform: uppercase; }
+  .form-input, .form-select, .form-textarea { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 12px 16px; font-family: 'Work Sans', sans-serif; font-size: 14px; color: rgba(255,255,255,0.85); outline: none; transition: border-color 0.2s, background 0.2s; width: 100%; }
+  .form-input::placeholder, .form-textarea::placeholder { color: rgba(255,255,255,0.20); }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--gold-400); background: rgba(255,255,255,0.08); }
+  .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 7L11 1' stroke='rgba(255,255,255,0.30)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; cursor: pointer; }
+  .form-select option { background: var(--navy-800); color: #fff; }
+  .form-textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+  .form-submit { background: var(--gold-400); color: var(--navy-900); font-family: 'Work Sans', sans-serif; font-weight: 600; font-size: 14px; padding: 14px 32px; border-radius: 8px; border: none; cursor: pointer; transition: background 0.2s; width: 100%; margin-top: 4px; }
+  .form-submit:hover { background: var(--gold-500); }
+
+  /* ── Responsive home ── */
+  @media (max-width: 1024px) {
+    .quem-somos-grid { gap: 48px; }
+    .servicos-grid { grid-template-columns: repeat(2, 1fr); }
+    .diferenciais-grid { grid-template-columns: repeat(2, 1fr); }
+    .fundos-grid { grid-template-columns: repeat(2, 1fr); }
+    .publicacoes-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 768px) {
+    .qs-chevron-bg { width: 90%; right: -8%; }
+    .quem-somos-grid { grid-template-columns: 1fr; gap: 40px; }
+    .servicos-360-bg { width: 90%; right: -10%; top: 0; transform: translateY(0) !important; }
+    .servicos-grid { grid-template-columns: 1fr; }
+    .servicos-detail-panel { display: none !important; }
+    .servico-inline-detail { display: block; overflow: hidden; max-height: 0; transition: max-height 0.42s ease, margin-top 0.30s ease; margin-top: 0; }
+    .servico-card.is-open .servico-inline-detail { max-height: 400px; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.15); }
+    .servico-inline-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+    .servico-inline-list li { display: flex; align-items: flex-start; gap: 10px; color: rgba(255,255,255,0.80); font-size: 13px; line-height: 1.6; }
+    .servico-inline-list li::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--gold-400); margin-top: 6px; flex-shrink: 0; }
+    .diferenciais-dots-bg { width: 88%; right: -4%; top: 0; }
+    .diferenciais-grid { grid-template-columns: 1fr; }
+    .fundos-lines-bg { width: 200%; left: -25%; top: 0; transform: translateY(0); }
+    .fundos-grid { grid-template-columns: 1fr; }
+    .publicacoes-dots-bg { width: auto; height: 60%; right: -45%; top: 0; }
+    .publicacoes-grid { grid-template-columns: 1fr; }
+    .contato-grid { grid-template-columns: 1fr; gap: 48px; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+
+</style>
+
+<!-- ══════════════════════════════════════
+     HERO
+══════════════════════════════════════ -->
+<section class="hero" id="inicio">
+  <video class="hero-video" autoplay muted loop playsinline>
+    <source src="/video_bg_hero.mp4" type="video/mp4">
+  </video>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <svg class="hero-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 199.52 106.51" role="img" aria-label="MZR Family Office">
+      <g class="logo-g-M">
+        <path d="M57.99 23.30L67.03 23.30L67.03 61.58L61.29 61.58L61.29 39.42L61.76 28.87L61.70 28.87L50.04 61.58L44.88 61.58L33.22 28.87L33.16 28.87L33.63 39.42L33.63 61.58L27.88 61.58L27.88 23.30L37.11 23.30L44.82 45.46L47.49 54.56L47.60 54.56L50.33 45.46L57.99 23.30Z" fill="#FFFFFF"/>
+      </g>
+      <g class="logo-g-Z">
+        <path d="M107.58 28.35L82.64 58.45L81.53 56.30L108.27 56.30L108.27 61.58L77.36 61.58L77.36 56.53L102.30 26.43L103.40 28.58L77.88 28.58L77.88 23.30L107.58 23.30L107.58 28.35Z" fill="#FFFFFF"/>
+      </g>
+      <g class="logo-g-R">
+        <path d="M118.48 23.30L134.08 23.30Q140.23 23.30 143.85 26.37Q147.48 29.45 147.48 34.67L147.48 34.67Q147.48 40.06 143.85 42.99Q140.23 45.92 134.08 45.92L134.08 45.92L133.50 46.27L124.63 46.27L124.63 61.58L118.48 61.58L118.48 23.30ZM124.63 41.11L133.62 41.11Q137.39 41.11 139.22 39.57Q141.04 38.03 141.04 34.84L141.04 34.84Q141.04 31.71 139.22 30.14Q137.39 28.58 133.62 28.58L133.62 28.58L124.63 28.58L124.63 41.11ZM131.94 44.82L137.27 42.38L149.74 61.58L142.61 61.58L131.94 44.82Z" fill="#FFFFFF"/>
+      </g>
+      <g class="logo-g-chevron">
+        <path d="M4,4 L27.56,18.5 L27.56,21.5 L4,36 L4,29.19 L18.93,20 L4,10.81 Z" transform="translate(151.43 22.20) scale(0.9248 0.9250)" fill="#C9A77C"/>
+      </g>
+      <g class="logo-g-line">
+        <rect x="27.89" y="79.81" width="22.65" height="1.5" fill="#C9A77C"/>
+      </g>
+      <g class="logo-g-family">
+        <path d="M67.58 77.38L67.58 78.35L63.69 78.35L63.69 80.36L66.74 80.36L66.74 81.33L63.69 81.33L63.69 84.31L62.57 84.31L62.57 77.38L67.58 77.38ZM71.34 84.31L70.18 84.31L72.80 77.38L74.14 77.38L76.75 84.31L75.57 84.31L73.78 79.35L73.47 78.36L73.44 78.36L73.14 79.33L71.34 84.31ZM75.33 82.49L71.58 82.49L71.58 81.58L75.33 81.58L75.33 82.49ZM86.16 77.38L87.80 77.38L87.80 84.31L86.76 84.31L86.76 80.30L86.85 78.39L86.83 78.39L84.72 84.31L83.79 84.31L81.68 78.39L81.67 78.39L81.75 80.30L81.75 84.31L80.71 84.31L80.71 77.38L82.38 77.38L83.78 81.39L84.26 83.04L84.28 83.04L84.78 81.39L86.16 77.38ZM92.59 77.38L93.71 77.38L93.71 84.31L92.59 84.31L92.59 77.38ZM99.62 77.38L99.62 83.34L103.45 83.34L103.45 84.31L98.50 84.31L98.50 77.38L99.62 77.38ZM110.16 77.38L111.42 77.38L108.94 81.65L108.94 84.31L107.81 84.31L107.81 81.65L105.35 77.38L106.60 77.38L107.83 79.62L108.38 80.65L108.93 79.62L110.16 77.38Z" fill="#C9A77C"/>
+      </g>
+      <g class="logo-g-office">
+        <path d="M123.89 77.28L123.89 77.28Q124.90 77.28 125.63 77.71Q126.37 78.14 126.77 78.93Q127.17 79.73 127.17 80.84L127.17 80.84Q127.17 81.96 126.77 82.76Q126.37 83.55 125.63 83.98Q124.90 84.42 123.89 84.42L123.89 84.42Q122.89 84.42 122.16 83.98Q121.42 83.55 121.02 82.76Q120.62 81.96 120.62 80.84L120.62 80.84Q120.62 79.73 121.02 78.93Q121.42 78.14 122.16 77.71Q122.89 77.28 123.89 77.28ZM123.89 78.25L123.89 78.25Q123.24 78.25 122.77 78.56Q122.30 78.86 122.05 79.44Q121.80 80.02 121.80 80.84L121.80 80.84Q121.80 81.66 122.05 82.25Q122.30 82.83 122.77 83.13Q123.24 83.44 123.89 83.44L123.89 83.44Q124.55 83.44 125.02 83.13Q125.49 82.83 125.74 82.25Q125.99 81.66 125.99 80.84L125.99 80.84Q125.99 80.02 125.74 79.44Q125.49 78.86 125.02 78.56Q124.55 78.25 123.89 78.25ZM136.57 77.38L136.57 78.35L132.69 78.35L132.69 80.36L135.73 80.36L135.73 81.33L132.69 81.33L132.69 84.31L131.56 84.31L131.56 77.38L136.57 77.38ZM145.72 77.38L145.72 78.35L141.83 78.35L141.83 80.36L144.88 80.36L144.88 81.33L141.83 81.33L141.83 84.31L140.71 84.31L140.71 77.38L145.72 77.38ZM149.86 77.38L150.98 77.38L150.98 84.31L149.86 84.31L149.86 77.38ZM160.44 82.12L161.51 82.47Q161.30 83.10 160.88 83.54Q160.46 83.97 159.89 84.19Q159.33 84.42 158.64 84.42L158.64 84.42Q157.65 84.42 156.91 83.98Q156.18 83.55 155.78 82.76Q155.38 81.96 155.38 80.84L155.38 80.84Q155.38 79.73 155.78 78.93Q156.18 78.14 156.91 77.71Q157.65 77.28 158.63 77.28L158.63 77.28Q159.32 77.28 159.87 77.46Q160.42 77.65 160.81 78.03Q161.20 78.41 161.41 78.98L161.41 78.98L160.35 79.45Q160.14 78.83 159.74 78.54Q159.34 78.25 158.70 78.25L158.70 78.25Q158.06 78.25 157.57 78.56Q157.09 78.86 156.82 79.44Q156.55 80.02 156.55 80.84L156.55 80.84Q156.55 81.66 156.81 82.25Q157.06 82.83 157.53 83.13Q158.00 83.44 158.67 83.44L158.67 83.44Q159.31 83.44 159.77 83.11Q160.24 82.78 160.44 82.12L160.44 82.12ZM170.84 84.31L165.68 84.31L165.68 77.38L170.70 77.38L170.70 78.35L166.80 78.35L166.80 80.34L169.85 80.34L169.85 81.29L166.80 81.29L166.80 83.34L170.84 83.34L170.84 84.31Z" fill="#C9A77C"/>
+      </g>
+    </svg>
+    <div class="hero-tagline">
+      <h1 style="font-family:'Spectral',serif;font-weight:400;font-size:clamp(32px,4.5vw,56px);color:#fff;line-height:1.10;letter-spacing:-0.022em;margin-bottom:16px;">Multi-Family Office<br>Completo e Independente</h1>
+      <p>Focado na gestão do patrimônio global de famílias,<br>no Brasil e no exterior.</p>
+    </div>
+  </div>
+  <a href="#institucoes" class="hero-scroll">
+    <span>Explorar</span>
+    <div class="scroll-line"></div>
+  </a>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     STRIP INSTITUIÇÕES
+══════════════════════════════════════ -->
+<div class="strip-institucoes" id="institucoes">
+  <div class="strip-institucoes-label">Instituições que já atuamos</div>
+  <div class="strip-track-outer">
+    <div class="strip-track">
+      <div class="strip-logos">
+        <span class="inst-logo">Santander</span>
+        <span class="inst-logo">BTG Pactual</span>
+        <span class="inst-logo">Bradesco</span>
+        <span class="inst-logo">Itaú</span>
+        <span class="inst-logo">Safra</span>
+        <span class="inst-logo">XP Investimentos</span>
+        <span class="inst-logo">Necton</span>
+        <span class="inst-logo">Guide</span>
+        <span class="inst-logo">XP Investments</span>
+        <span class="inst-logo">Citi</span>
+        <span class="inst-logo">Morgan Stanley</span>
+        <span class="inst-logo">J.P. Morgan</span>
+        <span class="inst-logo">Safra National Bank</span>
+        <span class="inst-logo">Julius Bär</span>
+      </div>
+      <div class="strip-logos" aria-hidden="true">
+        <span class="inst-logo">Santander</span>
+        <span class="inst-logo">BTG Pactual</span>
+        <span class="inst-logo">Bradesco</span>
+        <span class="inst-logo">Itaú</span>
+        <span class="inst-logo">Safra</span>
+        <span class="inst-logo">XP Investimentos</span>
+        <span class="inst-logo">Necton</span>
+        <span class="inst-logo">Guide</span>
+        <span class="inst-logo">XP Investments</span>
+        <span class="inst-logo">Citi</span>
+        <span class="inst-logo">Morgan Stanley</span>
+        <span class="inst-logo">J.P. Morgan</span>
+        <span class="inst-logo">Safra National Bank</span>
+        <span class="inst-logo">Julius Bär</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     QUEM SOMOS
+══════════════════════════════════════ -->
+<section class="section" id="quem-somos">
+  <svg class="qs-chevron-bg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40" aria-hidden="true">
+    <path d="M4,4 L27.56,18.5 L27.56,21.5 L4,36 L4,29.19 L18.93,20 L4,10.81 Z" fill="#BAB5AC"/>
+  </svg>
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="overline">Quem Somos</div>
+      <h2 class="section-title">MZR Family Office</h2>
+    </div>
+    <div class="quem-somos-grid">
+      <div class="quem-somos-text reveal">
+        <p>Uma estrutura independente e completa, focada na gestão do patrimônio global das famílias, abrangendo ativos líquidos e alternativos, no mercado de ativos reais e financeiros, no Brasil e no exterior.</p>
+      </div>
+      <div class="quem-somos-stats">
+        <div class="stat-card reveal reveal-delay-2">
+          <div class="stat-value">7<span>+</span></div>
+          <div class="stat-label">anos de mercado</div>
+        </div>
+        <div class="stat-card reveal reveal-delay-3">
+          <div class="stat-value">30<span>+</span></div>
+          <div class="stat-label">famílias atendidas</div>
+        </div>
+        <div class="stat-card reveal reveal-delay-4">
+          <div class="stat-value">10<span>+</span></div>
+          <div class="stat-label">sócios</div>
+        </div>
+        <div class="stat-card reveal reveal-delay-4">
+          <div class="stat-value">35<span>+</span></div>
+          <div class="stat-label">colaboradores</div>
+        </div>
+      </div>
+    </div>
+    <button class="qs-expand-trigger" id="qsExpandTrigger" aria-expanded="false">
+      <span class="qs-expand-label">Saiba mais</span>
+      <svg class="qs-expand-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </button>
+  </div>
+</section>
+
+<div class="qs-expandable" id="qsExpandable">
+  <div class="section-inner qs-expand-content">
+    <p>Fundada em 2018, por três ex-sócios do Grupo XP Inc, a MZR nasceu com o objetivo de atender famílias do segmento Private. Ao longo dos anos, identificamos diversas necessidades das famílias que atendemos, servindo de incentivo para agregarmos serviços à nossa atuação e nos consolidarmos como um Multi-Family Office – uma organização independente, com soluções completas, personalizadas e portfólios alinhados com o perfil e objetivo de cada família. Atuamos com uma visão 360º para auxiliar nossos clientes e suas empresas na gestão de riqueza e perpetuação de patrimônio, independente da instituição financeira em que possuam relacionamento.</p>
+    <h3 class="qs-expand-subtitle">Conheça nossa estrutura</h3>
+    <div class="qs-carousel" id="qsCarousel">
+      <div class="qs-carousel-track" id="qsCarouselTrack">
+        <div class="qs-carousel-slide"><img src="/Imgs/Fotos_Escritorio/mzr_joaquimfloriano2021@brendamartinsphotography-1.jpg" alt="Escritório MZR" loading="lazy"></div>
+        <div class="qs-carousel-slide"><img src="/Imgs/Fotos_Escritorio/mzr_joaquimfloriano2021@brendamartinsphotography-7.jpg" alt="Escritório MZR" loading="lazy"></div>
+        <div class="qs-carousel-slide"><img src="/Imgs/Fotos_Escritorio/mzr_joaquimfloriano2021@brendamartinsphotography-13.jpg" alt="Escritório MZR" loading="lazy"></div>
+        <div class="qs-carousel-slide"><img src="/Imgs/Fotos_Escritorio/mzr_joaquimfloriano2021@brendamartinsphotography-33.jpg" alt="Escritório MZR" loading="lazy"></div>
+      </div>
+      <button class="qs-carousel-btn qs-carousel-prev" id="qsCarouselPrev" aria-label="Anterior">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <button class="qs-carousel-btn qs-carousel-next" id="qsCarouselNext" aria-label="Próximo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <div class="qs-carousel-dots" id="qsCarouselDots">
+      <button class="qs-carousel-dot active" data-idx="0"></button>
+      <button class="qs-carousel-dot" data-idx="1"></button>
+      <button class="qs-carousel-dot" data-idx="2"></button>
+      <button class="qs-carousel-dot" data-idx="3"></button>
+    </div>
+    <button class="qs-expand-trigger open" id="qsCollapseTrigger" style="padding-top:40px;">
+      <span>Ver menos</span>
+      <svg class="qs-expand-arrow" style="transform:rotate(180deg);" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- ══════════════════════════════════════
+     SERVIÇOS
+══════════════════════════════════════ -->
+<section class="section" id="servicos">
+  <img class="servicos-360-bg" src="/Imgs/360.svg" alt="" aria-hidden="true">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="overline">Serviços</div>
+      <h2 class="section-title">Visão 360º</h2>
+      <p class="section-lead">Soluções locais e globais integradas</p>
+    </div>
+    <div class="servicos-grid" id="servicosGrid">
+
+      <div class="servico-card reveal reveal-delay-1" data-svc="1">
+        <div class="servico-card-top">
+          <div class="servico-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <h3>Gestão de Patrimônio</h3>
+        </div>
+        <button class="servico-toggle" aria-label="Ver detalhes" aria-expanded="false"><span class="servico-toggle-icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg></span></button>
+        <div class="servico-inline-detail">
+          <div class="servico-inline-subtitle">Global e Independente</div>
+          <ul class="servico-inline-list">
+            <li>Gestão local e offshore</li>
+            <li>Processo de investimento e modelagem bem definidos</li>
+            <li>Independência de instituições e acesso a segmentos exclusivos</li>
+            <li>Oportunidades restritas a investidores institucionais</li>
+            <li>Modelo de remuneração alinhado e reversão de rebate</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="servico-card reveal reveal-delay-2" data-svc="2">
+        <div class="servico-card-top">
+          <div class="servico-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <h3>Wealth Planning</h3>
+        </div>
+        <button class="servico-toggle" aria-label="Ver detalhes" aria-expanded="false"><span class="servico-toggle-icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg></span></button>
+        <div class="servico-inline-detail">
+          <div class="servico-inline-subtitle">Planejamento Sucessório, Patrimonial e Tributário</div>
+          <ul class="servico-inline-list">
+            <li>Estudo da estrutura familiar e suas relações, buscando a proteção das relações e perpetuidade dos ativos e recursos.</li>
+            <li>Análise e implementação de estruturas patrimoniais locais e offshore.</li>
+            <li>Holdings patrimoniais e Private Investment Companies.</li>
+            <li>Constante verificação de mudanças na legislação brasileira e internacional nas relações intrafamiliares.</li>
+            <li>Análise do patrimônio líquido e ilíquido.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="servico-card reveal reveal-delay-3" data-svc="3">
+        <div class="servico-card-top">
+          <div class="servico-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+          <h3>Concierge e Contabilidade</h3>
+        </div>
+        <button class="servico-toggle" aria-label="Ver detalhes" aria-expanded="false"><span class="servico-toggle-icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg></span></button>
+        <div class="servico-inline-detail">
+          <div class="servico-inline-subtitle">Serviços Administrativos</div>
+          <ul class="servico-inline-list">
+            <li>Auxílio às famílias na estruturação, manutenção e gestão de receitas e despesas.</li>
+            <li>Elaboração de DIRPF / DCBE.</li>
+            <li>Emissão de DARFs.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="servico-card reveal reveal-delay-4" data-svc="4">
+        <div class="servico-card-top">
+          <div class="servico-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></div>
+          <h3>Real Estate</h3>
+        </div>
+        <button class="servico-toggle" aria-label="Ver detalhes" aria-expanded="false"><span class="servico-toggle-icon"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg></span></button>
+        <div class="servico-inline-detail">
+          <div class="servico-inline-subtitle">Gestão Imobiliária</div>
+          <ul class="servico-inline-list">
+            <li>Manutenção dos imóveis com soluções na gestão de aluguel e compra/venda dos imóveis.</li>
+            <li>Acompanhamento da carteira de ativos imobiliários com apresentação de relatórios com métricas de TIR e Cap Rate.</li>
+            <li>Monitoramento do mercado em busca de oportunidades de compra e venda estratégicas.</li>
+            <li>Crédito imobiliário.</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="servicos-detail-panel" id="servicosDetailPanel">
+      <div class="servicos-detail-inner">
+        <div class="svc-detail-content" data-svc="1">
+          <div class="svc-detail-left">
+            <div class="svc-detail-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <div class="svc-detail-title">Gestão de Patrimônio</div>
+            <div class="svc-detail-subtitle">Global e Independente</div>
+          </div>
+          <ul class="svc-detail-list">
+            <li>Gestão local e offshore</li>
+            <li>Processo de investimento e modelagem bem definidos</li>
+            <li>Independência de instituições e acesso a segmentos exclusivos</li>
+            <li>Oportunidades restritas a investidores institucionais</li>
+            <li>Modelo de remuneração alinhado e reversão de rebate</li>
+          </ul>
+        </div>
+        <div class="svc-detail-content" data-svc="2">
+          <div class="svc-detail-left">
+            <div class="svc-detail-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <div class="svc-detail-title">Wealth Planning</div>
+            <div class="svc-detail-subtitle">Planejamento Sucessório, Patrimonial e Tributário</div>
+          </div>
+          <ul class="svc-detail-list">
+            <li>Estudo da estrutura familiar e suas relações, buscando a proteção das relações e perpetuidade dos ativos e recursos.</li>
+            <li>Análise e implementação de estruturas patrimoniais locais e offshore.</li>
+            <li>Holdings patrimoniais e Private Investment Companies.</li>
+            <li>Constante verificação de mudanças na legislação brasileira e internacional nas relações intrafamiliares.</li>
+            <li>Análise do patrimônio líquido e ilíquido.</li>
+          </ul>
+        </div>
+        <div class="svc-detail-content" data-svc="3">
+          <div class="svc-detail-left">
+            <div class="svc-detail-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
+            <div class="svc-detail-title">Concierge e Contabilidade</div>
+            <div class="svc-detail-subtitle">Serviços Administrativos</div>
+          </div>
+          <ul class="svc-detail-list">
+            <li>Auxílio às famílias na estruturação, manutenção e gestão de receitas e despesas.</li>
+            <li>Elaboração de DIRPF / DCBE.</li>
+            <li>Emissão de DARFs.</li>
+          </ul>
+        </div>
+        <div class="svc-detail-content" data-svc="4">
+          <div class="svc-detail-left">
+            <div class="svc-detail-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z"/><polyline points="9 21 9 12 15 12 15 21"/></svg></div>
+            <div class="svc-detail-title">Real Estate</div>
+            <div class="svc-detail-subtitle">Gestão Imobiliária</div>
+          </div>
+          <ul class="svc-detail-list">
+            <li>Manutenção dos imóveis com soluções na gestão de aluguel e compra/venda dos imóveis.</li>
+            <li>Acompanhamento da carteira de ativos imobiliários com apresentação de relatórios com métricas de TIR e Cap Rate.</li>
+            <li>Monitoramento do mercado em busca de oportunidades de compra e venda estratégicas.</li>
+            <li>Crédito imobiliário.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     DIFERENCIAIS
+══════════════════════════════════════ -->
+<section class="section" id="diferenciais">
+  <img class="diferenciais-dots-bg" src="/Imgs/Dots arrow.svg" alt="" aria-hidden="true">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="overline">Diferenciais</div>
+      <h2 class="section-title">Equipe experiente e especializada</h2>
+      <p class="section-lead">Nossos principais valores são pautados na transparência, integridade, imparcialidade e responsabilidade, o que nos permite cultivar relações de confiança e de longo prazo.</p>
+    </div>
+    <div class="diferenciais-grid">
+      <div class="diferencial-item reveal reveal-delay-1">
+        <div class="diferencial-num">01</div>
+        <div class="diferencial-title">Imparcialidade e Responsabilidade na tomada de decisão</div>
+      </div>
+      <div class="diferencial-item reveal reveal-delay-2">
+        <div class="diferencial-num">02</div>
+        <div class="diferencial-title">Demandas customizadas para atender suas particularidades</div>
+      </div>
+      <div class="diferencial-item reveal reveal-delay-3">
+        <div class="diferencial-num">03</div>
+        <div class="diferencial-title">Comitê e Equipe Estratégica, Técnica e Interdisciplinar</div>
+      </div>
+      <div class="diferencial-item reveal reveal-delay-4">
+        <div class="diferencial-num">04</div>
+        <div class="diferencial-title">Aplicativo personalizado para acompanhamento de portfólio</div>
+      </div>
+    </div>
+    <button class="qs-expand-trigger dark" id="diferenciaisExpandTrigger" aria-expanded="false">
+      <span class="fundos-expand-label">Saiba mais</span>
+      <svg class="qs-expand-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  </div>
+  <div class="diferenciais-expandable" id="diferenciaisExpandable">
+    <div class="section-inner diferenciais-expand-content">
+      <p>Nosso time é composto por gestores e analistas de mercado, consultores financeiros, contadores e advogados, que atuam de forma coordenada e ampla na busca de soluções que atendam às demandas particulares e individualizadas de cada cliente.</p>
+      <p>Oferecemos inúmeras soluções com parcerias estratégicas, para que possamos suprir quaisquer demandas de nossos clientes, tais como:</p>
+      <ul>
+        <li>Transferências internacionais (Câmbio PF/PJ, pagamento de invoice, importação e exportação)</li>
+        <li>Fusões e Aquisições</li>
+        <li>Crédito Pessoal e Corporativo</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     FUNDOS
+══════════════════════════════════════ -->
+<section class="section" id="fundos">
+  <img class="fundos-lines-bg" src="/Imgs/lines fundos.svg" alt="" aria-hidden="true">
+  <div class="section-inner">
+    <div class="fundos-header reveal">
+      <div>
+        <div class="overline">Fundos</div>
+        <h2 class="section-title">Estratégias Proprietárias</h2>
+      </div>
+    </div>
+    <div class="fundos-grid">
+      <div class="estrategia-card reveal reveal-delay-1" onclick="openFundoModal('multimercado')">
+        <div>
+          <div class="estrategia-card-tag">Multimercado</div>
+          <div class="estrategia-card-name">Allocation Retorno Absoluto</div>
+        </div>
+        <span class="btn-text-gold" style="pointer-events:none;">Saiba mais <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+      </div>
+      <div class="estrategia-card reveal reveal-delay-2" onclick="openFundoModal('globalequities')">
+        <div>
+          <div class="estrategia-card-tag">RV Internacional</div>
+          <div class="estrategia-card-name">Allocation Global Equities</div>
+        </div>
+        <span class="btn-text-gold" style="pointer-events:none;">Saiba mais <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+      </div>
+      <div class="estrategia-card reveal reveal-delay-3" onclick="openFundoModal('cicloolimpico')">
+        <div>
+          <div class="estrategia-card-tag">RV Local</div>
+          <div class="estrategia-card-name">Allocation Ciclo Olímpico</div>
+        </div>
+        <span class="btn-text-gold" style="pointer-events:none;">Saiba mais <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+      </div>
+      <div class="estrategia-card reveal reveal-delay-4" onclick="openFundoModal('pevc')">
+        <div>
+          <div class="estrategia-card-tag">Alternativos</div>
+          <div class="estrategia-card-name">Allocation PE/VC</div>
+        </div>
+        <span class="btn-text-gold" style="pointer-events:none;">Saiba mais <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+      </div>
+    </div>
+    <button class="qs-expand-trigger" id="fundosExpandTrigger" aria-expanded="false">
+      <span class="fundos-expand-label">Análise</span>
+      <svg class="qs-expand-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  </div>
+  <div class="fundos-expandable" id="fundosExpandable">
+    <div class="section-inner fundos-expand-content">
+      <h3 class="fundos-expand-title">Análise</h3>
+      <p>A MZR Family Office é uma administradora de carteira de valores mobiliários, na categoria gestor, que atua na gestão discricionária de patrimônio, sobretudo por meio de veículos de alocação que investem seus recursos em gestores especializados, com intuito de se isentar de potenciais conflitos de interesse na alocação de produtos proprietários.</p>
+      <p>Nesse sentido, desenvolvemos uma ferramenta proprietária para seleção e avaliação de gestores e veículos de investimento, por meio de análises quantitativas e qualitativas, cujo resultado é a geração de um relatório (score), o qual permite o constante acompanhamento da evolução dos gestores e performance dos investimentos realizados, bem como a redução do viés subjetivo em nossa análise.</p>
+      <p>Acreditamos que a conjugação desses fatores permite a criação de produtos que agregam os melhores fundos de investimento disponíveis no mercado, local e internacional, considerando as diversas classes de ativos e estratégias.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+
+<!-- ══════════════════════════════════════
+     PUBLICAÇÕES
+══════════════════════════════════════ -->
+<section class="section" id="publicacoes">
+  <img class="publicacoes-dots-bg" src="/Imgs/Dots Publi.svg" alt="" aria-hidden="true">
+  <div class="section-inner">
+    <div class="reveal" style="margin-bottom:48px;">
+      <div class="overline">Publicações</div>
+      <h2 class="section-title">Cartas Mensais e Análises</h2>
+    </div>
+    <div class="publicacoes-grid">
+      {publicacoes.length > 0 ? publicacoes.map((pub: any, i: number) => (
+        <a href={`/publicacoes/${pub.slug}`} class:list={['pub-card', 'reveal', i === 0 ? '' : 'secondary', i === 1 ? 'reveal-delay-2' : '', i === 2 ? 'reveal-delay-3' : '']}>
+          <div class="pub-card-tag">{pub.tag === 'Cartas Mensais' ? 'Carta Mensal' : pub.tag === 'Analises' ? 'Análise' : pub.tag}</div>
+          <div class="pub-card-title">{pub.titulo}</div>
+          <div class="pub-card-meta">
+            <span>{formatDate(pub.data)}</span>
+          </div>
+        </a>
+      )) : (
+        <p style="color: var(--neutral-500); font-size: 15px; grid-column: 1/-1;">Publicações em breve.</p>
+      )}
+    </div>
+    <div style="display:flex; justify-content:center; margin-top:40px;" class="reveal">
+      <a href="/publicacoes" class="btn-primary" style="display:inline-flex; align-items:center; gap:8px; font-size:14px;">
+        Ver todas as publicações
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     CONTATO
+══════════════════════════════════════ -->
+<section class="section" id="contato">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="overline">Contato</div>
+      <h2 class="section-title">Conecte-se Conosco</h2>
+      <p class="section-lead">Entre em contato e agende uma visita.</p>
+    </div>
+    <div class="contato-grid">
+      <div class="contato-info">
+        <div class="contato-info-item reveal reveal-delay-1">
+          <div class="contato-info-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.12a2 2 0 0 1 1.99-2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.37a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 21.5 16z"/></svg></div>
+          <div>
+            <div class="contato-info-label">Telefone</div>
+            <div class="contato-info-value" style="display:flex;align-items:center;gap:10px;">
+              (11) 93620-1241
+              <a href="https://wa.me/5511936201241?text=Gostaria%20de%20saber%20mais%20sobre%20a%20MZR%20Family%20Office" target="_blank" rel="noopener" title="Conversar no WhatsApp" style="display:flex;align-items:center;color:#fff;flex-shrink:0;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="contato-info-item reveal reveal-delay-2">
+          <div class="contato-info-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+          <div>
+            <div class="contato-info-label">E-mail</div>
+            <div class="contato-info-value" style="display:flex;align-items:center;gap:6px;">
+              contato@mzrfo.com.br
+              <button class="copy-email-btn" id="copyEmailBtn" aria-label="Copiar e-mail">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <span class="copy-tooltip" id="copyTooltip">E-mail copiado</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="contato-info-item reveal reveal-delay-3">
+          <div class="contato-info-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+          <div>
+            <div class="contato-info-label">Endereço</div>
+            <button class="contato-address-btn" onclick="handleAddressClick(event)" aria-label="Abrir endereço no mapa">
+              Rua Joaquim Floriano, 820 — 20º Andar<br>São Paulo / SP
+            </button>
+            <div class="map-picker" id="mapPicker">
+              <a href="https://waze.com/ul?q=Rua+Joaquim+Floriano+820+São+Paulo+SP" target="_blank" rel="noopener" class="map-picker-option" onclick="document.getElementById('mapPicker').classList.remove('open')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Waze
+              </a>
+              <a href="https://maps.google.com/?q=Rua+Joaquim+Floriano,+820,+São+Paulo,+SP" target="_blank" rel="noopener" class="map-picker-option" onclick="document.getElementById('mapPicker').classList.remove('open')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Google Maps
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <form class="form reveal" onsubmit="return false;">
+        <div class="form-row">
+          <div class="form-field"><label class="form-label">Nome</label><input class="form-input" type="text" placeholder="Seu nome completo"></div>
+          <div class="form-field"><label class="form-label">E-mail</label><input class="form-input" type="email" placeholder="seu@email.com.br"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label class="form-label">Telefone</label><input class="form-input" type="tel" placeholder="(XX) XXXXX-XXXX"></div>
+          <div class="form-field">
+            <label class="form-label">Assunto</label>
+            <select class="form-select">
+              <option value="" disabled selected>Selecione</option>
+              <option>Family Office</option>
+              <option>Consultoria</option>
+              <option>Investimentos</option>
+              <option>Outro</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field"><label class="form-label">Mensagem</label><textarea class="form-textarea" placeholder="Como podemos ajudar?"></textarea></div>
+        <button class="form-submit" type="submit">Enviar mensagem</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════
+     MODAL FUNDOS
+══════════════════════════════════════ -->
+<div class="fundo-modal-backdrop" id="fundoModal" role="dialog" aria-modal="true" aria-labelledby="fundoModalTitle">
+  <button class="fundo-modal-nav fundo-modal-nav-prev" id="fundoModalPrev" aria-label="Fundo anterior">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <div class="fundo-modal">
+    <button class="fundo-modal-close" id="fundoModalClose" aria-label="Fechar">&#x2715;</button>
+    <div id="fundoModalScreenMain">
+      <div class="fundo-modal-tag" id="fundoModalTag"></div>
+      <h3 class="fundo-modal-title" id="fundoModalTitle"></h3>
+      <p class="fundo-modal-desc" id="fundoModalDesc"></p>
+      <div class="fundo-modal-divider" id="fundoModalDivider"></div>
+      <div class="fundo-modal-docs-label" id="fundoModalDocsLabel">Lâminas</div>
+      <div class="fundo-modal-docs" id="fundoModalDocs"></div>
+      <div id="fundoModalGestorasWrap" style="display:none; padding-top:28px;">
+        <div class="fundo-modal-divider"></div>
+        <div class="fundo-modal-docs-label">Gestoras Alocadas</div>
+        <div class="fundo-modal-gestoras" id="fundoModalGestoras"></div>
+      </div>
+    </div>
+    <div id="fundoModalScreenSub" style="display:none;">
+      <button class="fundo-modal-back" id="fundoModalBack" onclick="navigateToFundoMain()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Voltar
+      </button>
+      <div class="fundo-modal-tag" id="fundoModalSubTag"></div>
+      <h3 class="fundo-modal-title" id="fundoModalSubTitle"></h3>
+      <p class="fundo-modal-sub-subtitle" id="fundoModalSubSubtitle"></p>
+      <div class="fundo-modal-divider"></div>
+      <div class="fundo-modal-docs-label" id="fundoModalSubDocsLabel"></div>
+      <div class="fundo-modal-docs" id="fundoModalSubDocs"></div>
+    </div>
+  </div>
+  <button class="fundo-modal-nav fundo-modal-nav-next" id="fundoModalNext" aria-label="Próximo fundo">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+</div>
+
+
+<script is:inline>
+  // Navbar logo fade baseado na posição do logo do hero
+  (function() {
+    var heroLogo = document.querySelector('.hero-logo-svg');
+    var navLogo  = document.querySelector('.navbar-logo');
+    var navbar   = document.querySelector('.navbar');
+    if (!heroLogo || !navLogo || !navbar) return;
+    function syncLogoOpacity() {
+      var rect      = heroLogo.getBoundingClientRect();
+      var navH      = navbar.offsetHeight;
+      var fadeStart = rect.height * 1.2 + navH;
+      var fadeEnd   = navH;
+      var t = (rect.bottom - fadeEnd) / (fadeStart - fadeEnd);
+      navLogo.style.opacity = 1 - Math.max(0, Math.min(1, t));
+    }
+    syncLogoOpacity();
+    window.addEventListener('scroll', syncLogoOpacity, { passive: true });
+  })();
+
+  // Navbar: highlight active section
+  (function() {
+    var sections = document.querySelectorAll('section[id]');
+    var navLinks = document.querySelectorAll('.navbar-nav a[href^="#"], .navbar-nav a[href^="/#"]');
+    window.addEventListener('scroll', function() {
+      var current = '';
+      sections.forEach(function(s) {
+        if (window.scrollY >= s.offsetTop - 100) current = s.getAttribute('id');
+      });
+      navLinks.forEach(function(link) {
+        link.classList.remove('active');
+        var href = link.getAttribute('href').replace('/#', '#').replace('/', '');
+        if (href === '#' + current) link.classList.add('active');
+      });
+    });
+  })();
+
+  // Quem Somos: chevron de fundo
+  (function() {
+    var sec = document.getElementById('quem-somos');
+    var bg  = sec && sec.querySelector('.qs-chevron-bg');
+    if (!bg) return;
+    function update() {
+      var rect = sec.getBoundingClientRect(), vh = window.innerHeight;
+      var mid  = rect.top + rect.height / 2;
+      var t    = Math.max(0, 1 - Math.abs(mid - vh / 2) / (vh * 0.65));
+      bg.style.opacity = (t * t * 0.14).toString();
+    }
+    update(); window.addEventListener('scroll', update, { passive: true });
+  })();
+
+  // Publicações: dots bg
+  (function() {
+    var sec = document.getElementById('publicacoes');
+    var bg  = sec && sec.querySelector('.publicacoes-dots-bg');
+    if (!bg) return;
+    function update() {
+      var rect = sec.getBoundingClientRect(), vh = window.innerHeight;
+      var t;
+      if (window.innerWidth <= 768) {
+        t = Math.min(Math.max(0, Math.min(1, (vh - rect.top) / (vh * 0.7))), Math.max(0, Math.min(1, rect.bottom / (vh * 0.6))));
+      } else {
+        t = Math.max(0, 1 - Math.abs(rect.top + rect.height / 2 - vh / 2) / (vh * 1.10));
+      }
+      bg.style.opacity = (t * t * 0.10).toString();
+    }
+    update(); window.addEventListener('scroll', update, { passive: true });
+  })();
+
+  // Fundos: lines bg
+  (function() {
+    var sec = document.getElementById('fundos');
+    var bg  = sec && sec.querySelector('.fundos-lines-bg');
+    if (!bg) return;
+    function update() {
+      var rect = sec.getBoundingClientRect(), vh = window.innerHeight;
+      var t;
+      if (window.innerWidth <= 768) {
+        t = Math.min(Math.max(0, Math.min(1, (vh - rect.top) / (vh * 0.7))), Math.max(0, Math.min(1, rect.bottom / (vh * 0.6))));
+      } else {
+        t = Math.max(0, 1 - Math.abs(rect.top + rect.height / 2 - vh / 2) / (vh * 1.10));
+      }
+      bg.style.opacity = (t * t * 0.045).toString();
+    }
+    update(); window.addEventListener('scroll', update, { passive: true });
+  })();
+
+  // Diferenciais: dots bg
+  (function() {
+    var sec = document.getElementById('diferenciais');
+    var bg  = sec && sec.querySelector('.diferenciais-dots-bg');
+    if (!bg) return;
+    function update() {
+      var rect = sec.getBoundingClientRect(), vh = window.innerHeight;
+      var t;
+      if (window.innerWidth <= 768) {
+        t = Math.min(Math.max(0, Math.min(1, (vh - rect.top) / (vh * 0.7))), Math.max(0, Math.min(1, rect.bottom / (vh * 0.6))));
+      } else {
+        t = Math.max(0, 1 - Math.abs(rect.top + rect.height / 2 - vh / 2) / (vh * 1.10));
+      }
+      bg.style.opacity = (t * t * 0.084).toString();
+    }
+    update(); window.addEventListener('scroll', update, { passive: true });
+  })();
+
+  // Serviços: 360 bg
+  (function() {
+    var sec = document.getElementById('servicos');
+    var bg  = sec && sec.querySelector('.servicos-360-bg');
+    if (!bg) return;
+    function update() {
+      var rect = sec.getBoundingClientRect(), vh = window.innerHeight;
+      var t;
+      if (window.innerWidth <= 768) {
+        t = Math.min(Math.max(0, Math.min(1, (vh - rect.top) / (vh * 0.7))), Math.max(0, Math.min(1, rect.bottom / (vh * 0.6))));
+        bg.style.opacity = (t * t * 0.048).toString();
+      } else {
+        t = Math.max(0, 1 - Math.abs(rect.top + rect.height / 2 - vh / 2) / (vh * 1.10));
+        bg.style.opacity   = (t * t * 0.048).toString();
+        bg.style.transform = 'translateY(-50%)';
+      }
+    }
+    update(); window.addEventListener('scroll', update, { passive: true });
+  })();
+
+  // Serviços: toggle cards + painel desktop
+  (function() {
+    var cards   = document.querySelectorAll('.servico-card');
+    var panel   = document.getElementById('servicosDetailPanel');
+    var section = document.getElementById('servicos');
+    var conts   = panel ? panel.querySelectorAll('.svc-detail-content') : [];
+    var closeTimer = null, expandedH = 0;
+
+    function setH() { if (expandedH > 0) section.style.minHeight = expandedH + 'px'; }
+    function clearH() { section.style.minHeight = ''; }
+
+    function closePanel() {
+      if (!panel) return;
+      panel.classList.remove('is-open');
+      clearTimeout(closeTimer);
+      closeTimer = setTimeout(function() { conts.forEach(function(c) { c.classList.remove('is-active'); }); clearH(); }, 460);
+    }
+
+    function openPanel(id) {
+      if (!panel) return false;
+      var cont = panel.querySelector('[data-svc="' + id + '"]');
+      if (!cont) return false;
+      clearTimeout(closeTimer);
+      conts.forEach(function(c) { c.classList.remove('is-active'); });
+      cont.classList.add('is-active');
+      setH();
+      panel.classList.add('is-open');
+      return true;
+    }
+
+    cards.forEach(function(card) {
+      card.addEventListener('click', function(e) {
+        if (e.target.closest && e.target.closest('.servico-inline-detail')) return;
+        var id = card.dataset.svc, isMobile = window.innerWidth <= 768, wasOpen = card.classList.contains('is-open');
+        cards.forEach(function(c) { c.classList.remove('is-open'); });
+        if (wasOpen) {
+          if (!isMobile) closePanel();
+        } else {
+          card.classList.add('is-open');
+          if (!isMobile) openPanel(id);
+        }
+        cards.forEach(function(c) {
+          var t = c.querySelector('.servico-toggle');
+          if (t) t.setAttribute('aria-expanded', c.classList.contains('is-open').toString());
+        });
+      });
+    });
+
+    window.addEventListener('load', function() {
+      if (window.innerWidth <= 768 || !section || !panel) return;
+      var naturalH = section.offsetHeight, panelW = panel.offsetWidth || section.offsetWidth;
+      var probe = document.createElement('div');
+      probe.style.cssText = 'position:fixed;visibility:hidden;top:0;left:0;width:' + panelW + 'px;pointer-events:none;z-index:-1;';
+      document.body.appendChild(probe);
+      var maxH = 0;
+      Array.from(conts).forEach(function(cont) {
+        var clone = cont.cloneNode(true);
+        clone.style.cssText = 'display:flex;padding:40px 48px;gap:56px;align-items:flex-start;';
+        probe.appendChild(clone);
+        void clone.offsetHeight;
+        if (clone.offsetHeight > maxH) maxH = clone.offsetHeight;
+        probe.removeChild(clone);
+      });
+      document.body.removeChild(probe);
+      if (maxH > 0) expandedH = naturalH + maxH + 12;
+    });
+  })();
+
+  // Quem Somos: expand
+  (function() {
+    var trigger  = document.getElementById('qsExpandTrigger');
+    var collapse = document.getElementById('qsCollapseTrigger');
+    var exp      = document.getElementById('qsExpandable');
+    var label    = trigger && trigger.querySelector('.qs-expand-label');
+    if (!trigger || !exp) return;
+    function toggle(scrollNext) {
+      var isOpen = exp.classList.toggle('open');
+      trigger.classList.toggle('open', isOpen);
+      trigger.setAttribute('aria-expanded', isOpen);
+      if (label) label.textContent = isOpen ? 'Ver menos' : 'Saiba mais';
+      if (!isOpen && scrollNext) {
+        setTimeout(function() { document.getElementById('servicos').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 780);
+      }
+    }
+    trigger.addEventListener('click', function() { toggle(false); });
+    if (collapse) collapse.addEventListener('click', function() { toggle(true); });
+  })();
+
+  // Fundos: expand análise
+  (function() {
+    var trigger = document.getElementById('fundosExpandTrigger');
+    var exp     = document.getElementById('fundosExpandable');
+    var label   = trigger && trigger.querySelector('.fundos-expand-label');
+    if (!trigger || !exp) return;
+    trigger.addEventListener('click', function() {
+      var isOpen = exp.classList.toggle('open');
+      trigger.classList.toggle('open', isOpen);
+      trigger.setAttribute('aria-expanded', isOpen);
+      if (label) label.textContent = isOpen ? 'Ver menos' : 'Análise';
+    });
+  })();
+
+  // Diferenciais: expand
+  (function() {
+    var trigger = document.getElementById('diferenciaisExpandTrigger');
+    var exp     = document.getElementById('diferenciaisExpandable');
+    var label   = trigger && trigger.querySelector('.fundos-expand-label');
+    if (!trigger || !exp) return;
+    trigger.addEventListener('click', function() {
+      var isOpen = exp.classList.toggle('open');
+      trigger.classList.toggle('open', isOpen);
+      trigger.setAttribute('aria-expanded', isOpen);
+      if (label) label.textContent = isOpen ? 'Ver menos' : 'Saiba mais';
+    });
+  })();
+
+  // Quem Somos: carrossel
+  (function() {
+    var track  = document.getElementById('qsCarouselTrack');
+    var dots   = document.querySelectorAll('#qsCarouselDots .qs-carousel-dot');
+    var slides = document.querySelectorAll('#qsCarousel .qs-carousel-slide');
+    if (!track || !slides.length) return;
+    var current = 0;
+    function goTo(idx) {
+      current = (idx + slides.length) % slides.length;
+      track.style.transform = 'translateX(-' + (current * 100) + '%)';
+      dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+    }
+    document.getElementById('qsCarouselPrev').addEventListener('click', function() { goTo(current - 1); });
+    document.getElementById('qsCarouselNext').addEventListener('click', function() { goTo(current + 1); });
+    dots.forEach(function(d) { d.addEventListener('click', function() { goTo(+d.dataset.idx); }); });
+    var startX = 0;
+    track.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; }, { passive: true });
+    track.addEventListener('touchend', function(e) {
+      var diff = startX - e.changedTouches[0].clientX;
+      if (Math.abs(diff) > 40) goTo(current + (diff > 0 ? 1 : -1));
+    });
+    setInterval(function() {
+      if (document.getElementById('qsExpandable').classList.contains('open')) goTo(current + 1);
+    }, 5000);
+    goTo(0);
+  })();
+
+  // Copiar e-mail
+  (function() {
+    var btn     = document.getElementById('copyEmailBtn');
+    var tooltip = document.getElementById('copyTooltip');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+      navigator.clipboard.writeText('contato@mzrfo.com.br').then(function() {
+        tooltip.classList.add('show');
+        setTimeout(function() { tooltip.classList.remove('show'); }, 1800);
+      });
+    });
+  })();
+
+  // Endereço: Google Maps (desktop) ou picker (mobile)
+  function handleAddressClick(e) {
+    if (/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      e.stopPropagation();
+      document.getElementById('mapPicker').classList.toggle('open');
+    } else {
+      window.open('https://maps.google.com/?q=Rua+Joaquim+Floriano,+820,+São+Paulo,+SP', '_blank', 'noopener');
+    }
+  }
+  document.addEventListener('click', function(e) {
+    var picker = document.getElementById('mapPicker');
+    if (picker && !picker.contains(e.target) && !e.target.closest('.contato-address-btn')) {
+      picker.classList.remove('open');
+    }
+  });
+
+  // Diferenciais: auto-ciclo
+  (function() {
+    var items = Array.from(document.querySelectorAll('.diferencial-item'));
+    if (!items.length) return;
+    var idx = 0, FADE = 1200, HOLD = 2400, started = false;
+    function applyTransition(item) {
+      item.style.transition = 'opacity ' + (FADE/1000) + 's ease-in-out, background ' + (FADE/1000) + 's ease-in-out, border-color ' + (FADE/1000) + 's ease-in-out';
+    }
+    function startCycle() {
+      if (started) return;
+      started = true;
+      setTimeout(function() {
+        items.forEach(function(item, i) {
+          applyTransition(item);
+          item.style.opacity = i === 0 ? '1' : '0.32';
+          if (i === 0) item.classList.add('active');
+        });
+        setInterval(function() {
+          items[idx].style.opacity = '0.32';
+          items[idx].classList.remove('active');
+          idx = (idx + 1) % items.length;
+          items[idx].style.opacity = '1';
+          items[idx].classList.add('active');
+        }, HOLD + FADE);
+      }, 900);
+    }
+    var section = document.getElementById('diferenciais');
+    if ('IntersectionObserver' in window) {
+      var obs = new IntersectionObserver(function(entries) {
+        if (entries[0].isIntersecting) { startCycle(); obs.disconnect(); }
+      }, { threshold: 0.25 });
+      obs.observe(section);
+    } else { startCycle(); }
+  })();
+
+  // Fundo Modal
+  var fundoData = {
+    multimercado: {
+      tag: 'Multimercado', title: 'Allocation Retorno Absoluto',
+      desc: 'Com o objetivo gerir um portfólio ótimo de veículos multimercados tendo em vista as principais estratégias disponíveis no mercado. A partir de avaliações internas, o propósito é acompanhar ativamente os fundos que compõe a estratégia, gerando oportunidades de investimento através de um mínimo de aplicação menor, eficiência tributária e retornos atrativos.',
+      docs: [{ label: 'Allocation — Lâmina Maio/26', href: '#' }, { label: 'Allocation Prev — Lâmina Maio/26', href: '#' }, { label: 'Allocation Plus — Lâmina Maio/26', href: '#' }, { label: 'Allocation Plus II — Lâmina Maio/26', href: '#' }]
+    },
+    globalequities: {
+      tag: 'Renda Variável Internacional Dolarizada', title: 'Allocation Global Equities',
+      desc: 'Buscando replicar a exposição geográfica do MSCI AC (principal índice de ações globais do mercado, englobando tanto bolsas de mercados desenvolvidos e emergentes), o Allocation Global Equities investe em fundos de gestão ativa de ações internacionais. A seleção dos gestores é através de uma ponderação de critérios quantitativos e qualitativos, buscando escolher os mais bem avaliados dentre uma vasta amostra disponíveis para investidores globais.',
+      docs: [{ label: 'Lâmina Abril/26', href: '#' }]
+    },
+    cicloolimpico: {
+      tag: 'Renda Variável Local', title: 'Ciclo Olímpico',
+      desc: 'Para nosso primeiro produto de impacto selecionamos as principais gestoras de ações no Brasil para um projeto inovador: Toda a taxa de administração do veículo será destinada ao investimento no esporte, especificamente no último sprint dos atletas que tem condições de trazerem medalhas para o Brasil nas próximas olimpíadas.',
+      docs: [{ label: 'Prestação de Contas', href: '#' }, { label: 'Lâmina Maio/26', href: '#' }]
+    },
+    pevc: {
+      tag: 'Alternativos', title: 'Allocation PE/VC',
+      desc: 'Com objetivo de diversificar a alocação de nossos clientes em participações de empresas privadas, o Allocation PE/VC investe em 12 fundos, entre as categorias de Venture Capital, Private Equity e Special Situations, possibilitando a alocação em diversas gestoras, estratégias, setores e companhias com um cheque mínimo reduzido versus a média da indústria. O veículo é um FIP local para investidores profissionais com mecanismo de chamada de capital.',
+      docsLabel: 'Documentos',
+      docs: [{ label: 'Fatos Relevantes', subContent: { tag: 'Alternativos', title: 'Fatos Relevantes', subtitle: 'Allocation Alternativos PE/VC II Fundo de Investimento em Participações Multiestratégia IE', docsLabel: 'Fatos Relevantes a partir de setembro/2025', links: [{ label: '01 de Setembro de 2025', href: '#' }, { label: '04 de Setembro de 2025', href: '#' }, { label: '26 de Novembro de 2025', href: '#' }, { label: '09 de Março de 2026', href: '#' }] } }],
+      gestoras: ['Monashees', 'One VC', 'XP Asset Management', 'Starboard', 'Kinea', 'Vinci Partners', 'Shift Capital', 'Mindset Ventures', 'Riverwood Capital', 'Cloud 9']
+    }
+  };
+
+  var docIcon    = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+  var navChevron = '<svg class="doc-nav-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+  var _fundoSubs = [], _currentFundoId = null;
+  var fundoOrder = ['multimercado', 'globalequities', 'cicloolimpico', 'pevc'];
+
+  function setFundoNavVisible(v) {
+    var d = v ? '' : 'none';
+    document.getElementById('fundoModalPrev').style.display = d;
+    document.getElementById('fundoModalNext').style.display = d;
+  }
+
+  function openFundoModal(id) {
+    var d = fundoData[id]; if (!d) return;
+    _currentFundoId = id;
+    document.getElementById('fundoModalScreenMain').style.display = '';
+    document.getElementById('fundoModalScreenSub').style.display = 'none';
+    setFundoNavVisible(true);
+    document.getElementById('fundoModalTag').textContent = d.tag;
+    document.getElementById('fundoModalTitle').textContent = d.title;
+    var descEl = document.getElementById('fundoModalDesc');
+    descEl.textContent = d.desc; descEl.style.display = d.desc ? '' : 'none';
+    var hasDocs = d.docs && d.docs.length > 0;
+    document.getElementById('fundoModalDivider').style.display = hasDocs ? '' : 'none';
+    var docsLabelEl = document.getElementById('fundoModalDocsLabel');
+    docsLabelEl.style.display = hasDocs ? '' : 'none';
+    docsLabelEl.textContent = d.docsLabel || 'Lâminas';
+    _fundoSubs = [];
+    document.getElementById('fundoModalDocs').innerHTML = hasDocs ? d.docs.map(function(doc, i) {
+      if (doc.subContent) { _fundoSubs[i] = doc.subContent; return '<button class="fundo-modal-doc-nav" onclick="navigateToFundoSub(' + i + ')">' + docIcon + doc.label + navChevron + '</button>'; }
+      return '<a href="' + doc.href + '" class="fundo-modal-doc-link" target="_blank" rel="noopener">' + docIcon + doc.label + '</a>';
+    }).join('') : '';
+    var hasGestoras = d.gestoras && d.gestoras.length > 0;
+    var gesWrap = document.getElementById('fundoModalGestorasWrap');
+    gesWrap.style.display = hasGestoras ? '' : 'none';
+    if (hasGestoras) document.getElementById('fundoModalGestoras').innerHTML = d.gestoras.map(function(g) { return '<div class="fundo-modal-gestora-item">' + g + '</div>'; }).join('');
+    document.getElementById('fundoModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function navigateToFundoSub(idx) {
+    var sub = _fundoSubs[idx]; if (!sub) return;
+    document.getElementById('fundoModalSubTag').textContent = sub.tag || '';
+    document.getElementById('fundoModalSubTitle').textContent = sub.title;
+    var subtitleEl = document.getElementById('fundoModalSubSubtitle');
+    subtitleEl.textContent = sub.subtitle || ''; subtitleEl.style.display = sub.subtitle ? '' : 'none';
+    document.getElementById('fundoModalSubDocsLabel').textContent = sub.docsLabel || 'Links';
+    document.getElementById('fundoModalSubDocs').innerHTML = sub.links.map(function(l) { return '<a href="' + l.href + '" class="fundo-modal-doc-link" target="_blank" rel="noopener">' + docIcon + l.label + '</a>'; }).join('');
+    var main = document.getElementById('fundoModalScreenMain'), sub2 = document.getElementById('fundoModalScreenSub');
+    main.style.display = 'none'; sub2.style.opacity = '0'; sub2.style.display = 'block';
+    requestAnimationFrame(function() { sub2.style.transition = 'opacity 0.22s ease'; sub2.style.opacity = '1'; });
+    setFundoNavVisible(false);
+    document.querySelector('#fundoModal .fundo-modal').scrollTop = 0;
+  }
+
+  function navigateToFundoMain() {
+    document.getElementById('fundoModalScreenSub').style.display = 'none';
+    var main = document.getElementById('fundoModalScreenMain');
+    main.style.opacity = '0'; main.style.display = '';
+    requestAnimationFrame(function() { main.style.transition = 'opacity 0.22s ease'; main.style.opacity = '1'; });
+    setFundoNavVisible(true);
+    document.querySelector('#fundoModal .fundo-modal').scrollTop = 0;
+  }
+
+  function closeFundoModal() {
+    document.getElementById('fundoModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.getElementById('fundoModalClose').addEventListener('click', closeFundoModal);
+  document.getElementById('fundoModalPrev').addEventListener('click', function() {
+    var idx = fundoOrder.indexOf(_currentFundoId);
+    openFundoModal(fundoOrder[(idx - 1 + fundoOrder.length) % fundoOrder.length]);
+  });
+  document.getElementById('fundoModalNext').addEventListener('click', function() {
+    var idx = fundoOrder.indexOf(_currentFundoId);
+    openFundoModal(fundoOrder[(idx + 1) % fundoOrder.length]);
+  });
+  document.getElementById('fundoModal').addEventListener('click', function(e) { if (e.target === this) closeFundoModal(); });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { closeFundoModal(); document.getElementById('regulatorioModal').classList.remove('open'); document.body.style.overflow = ''; }
+  });
+</script>
+
+</Base>

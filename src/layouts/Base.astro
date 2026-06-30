@@ -1,0 +1,709 @@
+---
+export interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  ogType?: string;
+}
+const {
+  title = 'MZR Family Office',
+  description = 'Multi-Family Office Completo e Independente',
+  ogImage,
+  ogType = 'website',
+} = Astro.props;
+const canonicalURL = Astro.url.href;
+---
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content={description} />
+  <title>{title}</title>
+  <link rel="canonical" href={canonicalURL} />
+  <!-- Open Graph -->
+  <meta property="og:type" content={ogType} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonicalURL} />
+  {ogImage && <meta property="og:image" content={ogImage} />}
+  {ogImage && <meta property="og:image:width" content="1200" />}
+  {ogImage && <meta property="og:image:height" content="630" />}
+  <!-- WhatsApp / Twitter -->
+  <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  {ogImage && <meta name="twitter:image" content={ogImage} />}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style is:global>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Work Sans', sans-serif;
+      background: #EFEDE8;
+      color: #1A2028;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* ── Tokens ── */
+    :root {
+      --navy-900: #0A1727;
+      --navy-800: #14263F;
+      --navy-700: #1D3557;
+      --navy-600: #245595;
+      --navy-500: #2E73AE;
+      --navy-400: #4E90C6;
+      --navy-300: #7BAED8;
+      --navy-100: #D5E6F4;
+      --navy-50:  #EEF4FB;
+      --gold-400: #C9A77C;
+      --gold-500: #B08C58;
+      --gold-600: #8C6C35;
+      --gold-100: #F2E8D0;
+      --white:    #FDFCFB;
+      --neutral-50:  #F7F5F2;
+      --neutral-100: #EFEDE8;
+      --neutral-200: #D8D3CA;
+      --neutral-400: #94918A;
+      --neutral-500: #6B7A8D;
+      --neutral-700: #3E4A5C;
+      --neutral-900: #1A2028;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Navbar ── */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 300;
+      background: #1D3557;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.07);
+    }
+    .navbar-inner {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      padding: 0 clamp(20px, 4vw, 48px);
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-width: none;
+    }
+    .navbar-inner::-webkit-scrollbar { display: none; }
+    .navbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.08em;
+      text-decoration: none;
+      flex-shrink: 0;
+      opacity: 1;
+      transition: opacity 0.4s ease;
+    }
+    .navbar-logo-text {
+      font-family: 'Work Sans', sans-serif;
+      font-weight: 500;
+      font-size: 20px;
+      letter-spacing: 0.03em;
+      color: #fff;
+      line-height: 1;
+    }
+    .navbar-logo svg {
+      height: 13px;
+      width: auto;
+      flex-shrink: 0;
+      transform: translateY(-1px);
+    }
+    .navbar-nav {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+      margin-left: 24px;
+    }
+    .navbar-nav a {
+      font-family: 'Work Sans', sans-serif;
+      font-weight: 500;
+      font-size: 13px;
+      letter-spacing: 0.01em;
+      text-decoration: none;
+      color: rgba(255,255,255,0.62);
+      padding: 20px 0;
+      white-space: nowrap;
+      display: inline-block;
+      position: relative;
+      transition: color 0.2s ease;
+    }
+    .navbar-nav a::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: #C9A77C;
+      transform: scaleX(0);
+      transform-origin: left center;
+      transition: transform 0.28s ease;
+    }
+    .navbar-nav a:hover { color: #C9A77C; }
+    .navbar-nav a:hover::after { transform: scaleX(1); }
+    .navbar-nav a.active { font-weight: 600; color: #C9A77C; }
+    .navbar-nav a.active::after { transform: scaleX(1); }
+    .navbar-cta {
+      margin-left: auto;
+      flex-shrink: 0;
+      background: transparent;
+      border: 1px solid rgba(201,167,124,0.45);
+      color: var(--gold-400);
+      font-family: 'Work Sans', sans-serif;
+      font-weight: 500;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      padding: 7px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      white-space: nowrap;
+    }
+    .navbar-cta:hover {
+      background: rgba(201,167,124,0.1);
+      border-color: var(--gold-400);
+    }
+    .hamburger {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px;
+      flex-shrink: 0;
+    }
+    .ham-line {
+      transition: transform 0.22s ease, opacity 0.22s ease;
+      transform-origin: center;
+    }
+    .hamburger.open .ham-top { transform: rotate(45deg) translate(3.5px, 3.5px); }
+    .hamburger.open .ham-mid { opacity: 0; }
+    .hamburger.open .ham-bot { transform: rotate(-45deg) translate(3.5px, -3.5px); }
+    .mobile-menu {
+      display: none;
+      position: absolute;
+      left: 0; right: 0; top: 100%;
+      z-index: 299;
+      background: rgba(18,34,56,0.88);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    .mobile-menu.open {
+      display: block;
+      animation: slideDown 0.22s ease forwards;
+    }
+    .mobile-nav-link {
+      display: block;
+      padding: 15px clamp(20px, 4vw, 48px);
+      font-family: 'Work Sans', sans-serif;
+      font-weight: 500;
+      font-size: 15px;
+      color: rgba(255,255,255,0.65);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: color 0.2s;
+    }
+    .mobile-nav-link:hover { color: var(--gold-400); }
+    .mobile-cta {
+      display: block;
+      width: calc(100% - 2 * clamp(20px, 4vw, 48px));
+      margin: 16px clamp(20px, 4vw, 48px) 20px;
+      background: transparent;
+      border: 1px solid rgba(201,167,124,0.45);
+      color: var(--gold-400);
+      font-family: 'Work Sans', sans-serif;
+      font-weight: 500;
+      font-size: 14px;
+      letter-spacing: 0.04em;
+      padding: 13px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .mobile-cta:hover {
+      background: rgba(201,167,124,0.1);
+      border-color: var(--gold-400);
+    }
+
+    /* ── Seção comum ── */
+    .section { padding: 96px 0; }
+    .section-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+    .overline {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--gold-600);
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Spectral', serif;
+      font-weight: 400;
+      font-size: clamp(36px, 4vw, 52px);
+      color: var(--navy-700);
+      line-height: 1.10;
+      letter-spacing: -0.020em;
+      margin-bottom: 20px;
+    }
+    .section-lead {
+      font-size: 18px;
+      font-weight: 400;
+      color: var(--neutral-700);
+      line-height: 1.72;
+      max-width: 640px;
+    }
+
+    /* ── Pub cards ── */
+    .pub-card {
+      background: var(--white);
+      border: 1px solid var(--neutral-200);
+      border-radius: 12px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-decoration: none;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .pub-card:hover {
+      box-shadow: 0 4px 20px rgba(29,53,87,0.08);
+      border-color: var(--navy-200);
+    }
+    .pub-card-tag {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold-600);
+    }
+    .pub-card-title {
+      font-family: 'Spectral', serif;
+      font-weight: 400;
+      font-size: 22px;
+      color: var(--navy-800);
+      line-height: 1.30;
+      letter-spacing: -0.01em;
+    }
+    .pub-card.secondary .pub-card-title { font-size: 17px; }
+    .pub-card-desc {
+      font-size: 14px;
+      color: var(--neutral-500);
+      line-height: 1.70;
+      flex: 1;
+    }
+    .pub-card-meta {
+      font-size: 12px;
+      color: var(--neutral-400);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pub-card-meta span { color: var(--neutral-200); }
+
+    /* ── Reveal animations ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--navy-900);
+      border-top: 1px solid rgba(255,255,255,0.07);
+      padding: 64px 0 32px;
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 48px;
+    }
+    .footer-top {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+      padding-bottom: 48px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .footer-brand { display: flex; flex-direction: column; gap: 20px; }
+    .footer-logo { display: flex; align-items: center; gap: 0.06em; }
+    .footer-logo-text {
+      font-family: 'Work Sans', sans-serif;
+      font-weight: 500;
+      font-size: 20px;
+      letter-spacing: 0.03em;
+      color: #fff;
+    }
+    .footer-logo svg { height: 13px; width: auto; transform: translateY(-1px); }
+    .footer-seals {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+      margin-top: 4px;
+    }
+    .footer-seals img { height: 45px; width: auto; }
+    .footer-col-title {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.30);
+      margin-bottom: 16px;
+    }
+    .footer-links { display: flex; flex-direction: column; gap: 10px; }
+    .footer-links a, .footer-links button {
+      font-size: 13px;
+      color: rgba(255,255,255,0.55);
+      text-decoration: none;
+      transition: color 0.2s;
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      font-family: inherit;
+      text-align: left;
+    }
+    .footer-links a:hover, .footer-links button:hover { color: rgba(255,255,255,0.90); }
+    .footer-bottom {
+      padding-top: 28px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .footer-legal {
+      font-size: 11px;
+      color: rgba(255,255,255,0.22);
+      line-height: 1.65;
+      max-width: 640px;
+    }
+    .footer-copy {
+      font-size: 12px;
+      color: rgba(255,255,255,0.25);
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* ── Modal Regulatório ── */
+    .fundo-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(10,23,39,0.75);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.28s ease, visibility 0.28s ease;
+    }
+    .fundo-modal-backdrop.open { opacity: 1; visibility: visible; }
+    .fundo-modal {
+      background: var(--navy-800);
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 620px;
+      width: 100%;
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .fundo-modal-close {
+      position: absolute;
+      top: 20px; right: 20px;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.45);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+    .fundo-modal-close:hover { color: #fff; }
+    .fundo-modal-tag {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold-400);
+      margin-bottom: 12px;
+    }
+    .fundo-modal-title {
+      font-family: 'Spectral', serif;
+      font-weight: 400;
+      font-size: 24px;
+      color: #fff;
+      line-height: 1.25;
+      margin-bottom: 20px;
+    }
+    .fundo-modal-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+      margin: 20px 0;
+    }
+    .regulatorio-links {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 16px;
+    }
+    .fundo-modal-doc-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.65);
+      text-decoration: none;
+      padding: 8px 0;
+      transition: color 0.2s;
+    }
+    .fundo-modal-doc-link:hover { color: var(--gold-400); }
+
+    /* ── Responsive ── */
+    @media (max-width: 1024px) {
+      .footer-top { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 768px) {
+      .navbar-inner { padding-top: 16px; padding-bottom: 16px; }
+      .navbar-nav { display: none; }
+      .navbar-cta { display: none; }
+      .hamburger { display: flex; margin-left: auto; }
+      .mobile-menu.open { max-height: calc(100vh - 56px); overflow-y: auto; }
+      .section-inner { padding: 0 24px; }
+      .footer-top { grid-template-columns: 1fr 1fr; gap: 28px 20px; }
+      .footer-brand { grid-column: 1 / -1; }
+      .footer-bottom { flex-direction: column; }
+      .footer-inner { padding: 0 24px; }
+      .regulatorio-links { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="/" class="navbar-logo">
+        <span class="navbar-logo-text">MZR</span>
+        <svg viewBox="4 0 24 40" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4,4 L27.56,18.5 L27.56,21.5 L4,36 L4,29.19 L18.93,20 L4,10.81 Z" fill="#C9A77C"/>
+        </svg>
+      </a>
+      <nav class="navbar-nav">
+        <a href="/#quem-somos">Quem Somos</a>
+        <a href="/#servicos">Serviços</a>
+        <a href="/#diferenciais">Diferenciais</a>
+        <a href="/#fundos">Fundos</a>
+        <a href="/publicacoes" class:list={[{ active: Astro.url.pathname.startsWith('/publicacoes') }]}>Publicações</a>
+        <a href="/#contato">Contato</a>
+      </nav>
+      <button class="navbar-cta" id="btnAcessoClientes">Acesso Clientes</button>
+      <button class="hamburger" id="hamburger" aria-label="Abrir menu">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <line class="ham-line ham-top" x1="2" y1="5" x2="18" y2="5" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line class="ham-line ham-mid" x1="2" y1="10" x2="18" y2="10" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <line class="ham-line ham-bot" x1="2" y1="15" x2="18" y2="15" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="/" class="mobile-nav-link">Início</a>
+      <a href="/#quem-somos" class="mobile-nav-link">Quem Somos</a>
+      <a href="/#servicos" class="mobile-nav-link">Serviços</a>
+      <a href="/#diferenciais" class="mobile-nav-link">Diferenciais</a>
+      <a href="/#fundos" class="mobile-nav-link">Fundos</a>
+      <a href="/publicacoes" class:list={['mobile-nav-link', { active: Astro.url.pathname.startsWith('/publicacoes') }]}>Publicações</a>
+      <a href="/#contato" class="mobile-nav-link">Contato</a>
+      <button class="mobile-cta" id="btnAcessoClientesMobile">Acesso Clientes</button>
+    </div>
+  </nav>
+
+  <slot />
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <span class="footer-logo-text">MZR</span>
+            <svg viewBox="4 0 24 40" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4,4 L27.56,18.5 L27.56,21.5 L4,36 L4,29.19 L18.93,20 L4,10.81 Z" fill="#C9A77C"/>
+            </svg>
+          </div>
+          <div class="footer-seals">
+            <img src="/Imgs/Logos_anbima.png" alt="ANBIMA" style="height:62px;">
+            <img src="/Imgs/cvm-logo-white.png" alt="CVM">
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Empresa</div>
+          <div class="footer-links">
+            <a href="/#quem-somos">Quem Somos</a>
+            <a href="/#servicos">Serviços</a>
+            <a href="/#diferenciais">Diferenciais</a>
+            <a href="/#fundos">Fundos</a>
+            <a href="/publicacoes">Publicações</a>
+            <a href="/#contato">Contato</a>
+          </div>
+        </div>
+        <div>
+          <div class="footer-col-title">Acesso</div>
+          <div class="footer-links">
+            <a href="#">Área do Cliente</a>
+            <button onclick="document.getElementById('regulatorioModal').classList.add('open');document.body.style.overflow='hidden';">Regulatório - Downloads</button>
+            <a href="#">LinkedIn</a>
+            <a href="#">Spotify</a>
+            <a href="#">Instagram</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-legal">MZR GESTORA DE RECURSOS LTDA | CNPJ: 39.667.665/0001-99</p>
+        <p class="footer-copy">© 2026 MZR Family Office</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Modal Regulatório -->
+  <div class="fundo-modal-backdrop" id="regulatorioModal" role="dialog" aria-modal="true">
+    <div class="fundo-modal" style="max-width:620px;">
+      <button class="fundo-modal-close" onclick="document.getElementById('regulatorioModal').classList.remove('open');document.body.style.overflow='';" aria-label="Fechar">&#x2715;</button>
+      <div class="fundo-modal-tag">Documentos</div>
+      <h3 class="fundo-modal-title">Códigos, Políticas e Formulário de Referência</h3>
+      <div class="fundo-modal-divider"></div>
+      <div class="regulatorio-links">
+        <a href="#" class="fundo-modal-doc-link" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Política de Controles Internos
+        </a>
+        <a href="#" class="fundo-modal-doc-link" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Manual de Gerenciamento de Risco de Liquidez
+        </a>
+        <a href="#" class="fundo-modal-doc-link" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Política de Gestão de Riscos
+        </a>
+        <a href="#" class="fundo-modal-doc-link" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Política de Investimentos Pessoais
+        </a>
+        <a href="#" class="fundo-modal-doc-link" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Política de Segurança de Informação
+        </a>
+        <a href="#" class="fundo-modal-doc-link" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Política de Treinamento
+        </a>
+        <a href="#" class="fundo-modal-doc-link" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Política de Seleção e Alocação de Ativos
+        </a>
+        <a href="#" class="fundo-modal-doc-link" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Política de Voto
+        </a>
+        <a href="#" class="fundo-modal-doc-link" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Política de Rateio e Divisão de Ordens
+        </a>
+        <a href="#" class="fundo-modal-doc-link" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Formulário de Referência
+        </a>
+        <a href="#" class="fundo-modal-doc-link" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Código de Ética
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Acesso Clientes
+    function handleAcessoClientes() {
+      var ua = navigator.userAgent || navigator.vendor || window.opera;
+      if (/android/i.test(ua)) {
+        window.open('https://play.google.com/store/apps/details?id=br.com.smartbrain.app.mmzrfamilyoffice.twa&hl=pt_BR', '_blank');
+      } else if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+        window.open('https://apps.apple.com/br/app/mmzr/id1635820548', '_blank');
+      } else {
+        window.open('https://mmzr.smartbrain.com.br/', '_blank');
+      }
+    }
+    document.getElementById('btnAcessoClientes').addEventListener('click', handleAcessoClientes);
+    document.getElementById('btnAcessoClientesMobile').addEventListener('click', handleAcessoClientes);
+
+    // Hamburger
+    (function() {
+      var hamburger  = document.getElementById('hamburger');
+      var mobileMenu = document.getElementById('mobileMenu');
+      if (!hamburger || !mobileMenu) return;
+      hamburger.addEventListener('click', function() {
+        hamburger.classList.toggle('open');
+        mobileMenu.classList.toggle('open');
+      });
+      mobileMenu.querySelectorAll('.mobile-nav-link').forEach(function(link) {
+        link.addEventListener('click', function() {
+          hamburger.classList.remove('open');
+          mobileMenu.classList.remove('open');
+        });
+      });
+    })();
+
+    // Fechar modal clicando no backdrop
+    document.getElementById('regulatorioModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.classList.remove('open');
+        document.body.style.overflow = '';
+      }
+    });
+
+    // Scroll reveal
+    const revealEls = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    revealEls.forEach(el => revealObserver.observe(el));
+  </script>
+
+</body>
+</html>
