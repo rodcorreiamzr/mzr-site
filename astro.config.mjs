@@ -2,7 +2,7 @@ import { defineConfig } from 'astro/config';
 import sanity from '@sanity/astro';
 
 export default defineConfig({
-  site: 'https://mzr-site.vercel.app',
+  site: 'https://mzrfo.com.br',
   output: 'static',
   integrations: [
     sanity({

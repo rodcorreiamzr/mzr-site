@@ -1,0 +1,14 @@
+{
+  "redirects": [
+    {
+      "source": "/spotify",
+      "destination": "https://open.spotify.com/show/1MP43zTCG5dSbsst6g1wEi?si=ac573ae6edfd4c20",
+      "statusCode": 302
+    },
+    {
+      "source": "/instagram",
+      "destination": "https://www.instagram.com/mmzrfo",
+      "statusCode": 302
+    }
+  ]
+}
