@@ -99,8 +99,17 @@ export async function htmlToPortableText(html, opts) {
     }
     if (iframe || tag === 'iframe') {
       diag.flags.add('iframe');
-      const html = (iframe || el).outerHTML;
-      blocks.push({ _type: 'codigoEmbutido', _key: key(), codigo: html });
+      blocks.push({ _type: 'codigoEmbutido', _key: key(), codigo: (iframe || el).outerHTML });
+      continue;
+    }
+    // custom code / embed do Webflow: div.w-embed, figure de embed, ou QUALQUER
+    // bloco contendo <script>. Preservado como HTML cru (não achatar pra texto).
+    // ⚠ <script> não executa via set:html no site estático — só flag pra revisão.
+    const cls = (el.getAttribute && (el.getAttribute('class') || '')) || '';
+    const hasScript = tag === 'script' || (el.querySelector && el.querySelector('script'));
+    if (hasScript || /embed/i.test(cls)) {
+      diag.flags.add(hasScript ? 'script' : 'embed');
+      blocks.push({ _type: 'codigoEmbutido', _key: key(), codigo: el.outerHTML });
       continue;
     }
     if (tag === 'table') {
@@ -112,7 +121,6 @@ export async function htmlToPortableText(html, opts) {
       blocks.push(...listBlocks(el, 1, diag));
       continue;
     }
-    if (tag === 'script') { diag.flags.add('script'); continue; } // não executa via set:html
     if (tag === 'hr') continue;
 
     const inline = processInline(el);
