@@ -601,7 +601,7 @@ const regulatorioDocs = regulatorioFromCms.length ? regulatorioFromCms : regulat
         <div>
           <div class="footer-col-title">Acesso</div>
           <div class="footer-links">
-            <a href="#">Área do Cliente</a>
+            <a href="#" id="btnAreaClienteFooter">Área do Cliente</a>
             <button onclick="document.getElementById('regulatorioModal').classList.add('open');document.body.style.overflow='hidden';">Regulatório - Downloads</button>
             <a href="#">LinkedIn</a>
             <a href="#">Spotify</a>
@@ -648,6 +648,12 @@ const regulatorioDocs = regulatorioFromCms.length ? regulatorioFromCms : regulat
     }
     document.getElementById('btnAcessoClientes').addEventListener('click', handleAcessoClientes);
     document.getElementById('btnAcessoClientesMobile').addEventListener('click', handleAcessoClientes);
+    // "Área do Cliente" do footer usa o mesmo destino do "Acesso Clientes" da navbar
+    var btnAreaClienteFooter = document.getElementById('btnAreaClienteFooter');
+    if (btnAreaClienteFooter) btnAreaClienteFooter.addEventListener('click', function(e) {
+      e.preventDefault();
+      handleAcessoClientes();
+    });
 
     // Hamburger
     (function() {
