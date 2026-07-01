@@ -126,6 +126,12 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       gap: 48px;
       align-items: start;
     }
+    /* Sem headings (ex: resenhas de livros) não há TOC: usa coluna única
+       centralizada, para o conteúdo não ficar com um vão vazio à direita. */
+    .pub-layout--no-toc {
+      grid-template-columns: minmax(0, 760px);
+      justify-content: center;
+    }
     .pub-corpo-box {
       background: #fff;
       border-radius: 16px;
@@ -363,7 +369,7 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
   <!-- Conteúdo -->
   <section class="pub-interna-corpo">
     <div class="section-inner">
-      <div class="pub-layout">
+      <div class={`pub-layout${headings.length === 0 ? ' pub-layout--no-toc' : ''}`}>
         <div class="pub-corpo-box">
           <div class="pub-corpo-content" set:html={corpoHTML} />
         </div>
