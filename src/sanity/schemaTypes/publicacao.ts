@@ -97,6 +97,13 @@ export const publicacao = defineType({
               title: 'Legenda da imagem',
               type: 'string',
             },
+            {
+              name: 'largura',
+              title: 'Largura (%)',
+              type: 'number',
+              description: 'Largura da imagem em % da largura do texto. Deixe vazio para largura total. Ex.: 20 = 20%, centralizada. (Ideal para capas de livro.)',
+              validation: (Rule) => Rule.min(5).max(100),
+            },
           ],
         },
         {

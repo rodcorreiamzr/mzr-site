@@ -70,7 +70,7 @@ function listBlocks(el, level, diag) {
  * diag acumula diagnóstico: { tags:{}, images, links, flags:Set }
  */
 export async function htmlToPortableText(html, opts) {
-  const { uploadImage, stripFirstHeading = true, diag } = opts;
+  const { uploadImage, stripFirstHeading = true, diag, imgWidth } = opts;
   const { window } = new JSDOM(html);
   const body = window.document.body;
 
@@ -94,6 +94,7 @@ export async function htmlToPortableText(html, opts) {
       const b = { _type: 'image', _key: key() };
       if (assetId) b.asset = { _type: 'reference', _ref: assetId };
       else b._pendingSrc = img.getAttribute('src'); // dry-run
+      if (imgWidth) b.largura = imgWidth;
       blocks.push(b);
       continue;
     }

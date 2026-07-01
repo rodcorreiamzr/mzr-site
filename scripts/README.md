@@ -45,6 +45,7 @@ node scripts/migrar.mjs --csv "/caminho/Blog posts Cartas.csv" --category cartas
 - `--dry` / `--publish` — obrigatório escolher um.
 - `--force` — regrava itens que já existem (senão são pulados; migração é idempotente).
 - `--keep-first-heading` — NÃO remove o 1º título do corpo (o padrão remove, pois o Webflow repete o título do post no início).
+- `--img-width N` — define a largura (%) de TODAS as imagens do lote (ex.: `--img-width 20` p/ capas de livro, centralizadas). Vazio = largura total. No CMS dá para ajustar cada imagem depois (campo "Largura (%)").
 - Overrides de coluna, se um CSV vier diferente: `--name-col`, `--body-col`, `--date-col`.
 - Overrides manuais: `--tag "..."`, `--id-prefix "..."`, `--strip-prefix "regex"`.
 

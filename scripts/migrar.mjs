@@ -42,6 +42,7 @@ const stripPrefix = opt('strip-prefix') ? new RegExp(opt('strip-prefix'), 'i') :
 const NAME_COL = opt('name-col', 'Name');
 const BODY_COL = opt('body-col', 'Post Body');
 const DATE_COL = opt('date-col', 'Data');
+const IMG_WIDTH = opt('img-width') ? Number(opt('img-width')) : undefined; // largura % em todas as imagens do lote
 
 const token = process.env.SANITY_TOKEN;
 if (!token) { console.error('Faltou SANITY_TOKEN'); process.exit(1); }
@@ -112,7 +113,7 @@ for (const row of rows) {
   const diag = { tags: {}, images: 0, links: 0, flags: new Set(), strippedHeading: null };
   const body = row[BODY_COL] || '';
   if (!body.trim()) warnings.push(`${_id}: corpo vazio`);
-  const corpo = await htmlToPortableText(body, { uploadImage, stripFirstHeading: !KEEP_HEADING, diag });
+  const corpo = await htmlToPortableText(body, { uploadImage, stripFirstHeading: !KEEP_HEADING, diag, imgWidth: IMG_WIDTH });
 
   for (const [t, c] of Object.entries(diag.tags)) globalTags[t] = (globalTags[t] || 0) + c;
   if (diag.flags.size) flaggedDocs.push({ _id, flags: [...diag.flags] });

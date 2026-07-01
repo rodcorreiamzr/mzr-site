@@ -54,7 +54,9 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
         const src = value?.assetUrl || '';
         const legenda = value?.legenda || '';
         if (!src) return '';
-        return `<figure class="pub-figura">
+        const largura = Number(value?.largura);
+        const style = largura ? ` style="max-width:${largura}%;margin-left:auto;margin-right:auto"` : '';
+        return `<figure class="pub-figura"${style}>
           <img src="${src}" alt="${legenda}" />
           ${legenda ? `<figcaption class="pub-legenda">${legenda}</figcaption>` : ''}
         </figure>`;
