@@ -105,3 +105,20 @@ export async function getPrestacaoContas() {
     }
   `);
 }
+
+// Documentos do modal "Regulatório - Downloads" do rodapé (singleton).
+// Retorna TODOS os itens do registro (não filtra por PDF): itens sem arquivo nem
+// URL vêm com url=null e o Base.astro renderiza href="#" — assim os links já
+// existentes permanecem visíveis enquanto os PDFs são subidos aos poucos.
+// Retorna [] só se não houver registro publicado — aí o Base.astro usa o fallback.
+export async function getDocumentosRegulatorio() {
+  const doc = await client.fetch(`
+    *[_type == "documentosRegulatorio"][0] {
+      "documentos": documentos[]{
+        label,
+        "url": coalesce(arquivo.asset->url, urlExterna)
+      }
+    }
+  `);
+  return doc?.documentos || [];
+}
