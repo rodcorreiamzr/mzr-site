@@ -4,7 +4,9 @@ const client = createClient({
   projectId: 'xe11jg20',
   dataset: 'production',
   apiVersion: '2024-01-01',
-  useCdn: true,
+  // false: fetches são só em build-time (SSG). Garante dados frescos e evita a
+  // defasagem do CDN logo após publicar (build pegava conteúdo antigo).
+  useCdn: false,
 });
 
 export async function getPublicacoes() {
