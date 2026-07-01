@@ -1,0 +1,127 @@
+// Conversor HTML (rich text do Webflow) -> Portable Text (Sanity).
+// Genérico para qualquer categoria. O upload de imagem é injetado (uploadImage),
+// para o chamador controlar dry-run (sem gravar) vs publicação real.
+import { JSDOM } from 'jsdom';
+
+let n = 0;
+export const key = () => 'k' + (n++).toString(36) + Math.random().toString(36).slice(2, 6);
+
+// zero-width chars (inclui ‍ dos parágrafos vazios do Webflow) e nbsp -> espaço
+const ZW = /[​‌‍⁠﻿]/g;
+const cleanText = (s) => s.replace(ZW, '').replace(/ /g, ' ');
+export const slugify = (t) => t.toLowerCase().normalize('NFD')
+  .replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9\s]/g, '')
+  .trim().replace(/\s+/g, '-');
+const hasText = (children) => children.some(c => c._type === 'span' && c.text.replace(/\s/g, '').length > 0);
+const norm = (s) => cleanText(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+
+// Elemento -> {children:[spans], markDefs:[]} (processa inline: strong/em/a/br)
+function processInline(node) {
+  const children = [], markDefs = [];
+  (function walk(nd, marks) {
+    for (const child of nd.childNodes) {
+      if (child.nodeType === 3) {
+        const text = cleanText(child.textContent);
+        if (text) children.push({ _type: 'span', _key: key(), text, marks: [...marks] });
+      } else if (child.nodeType === 1) {
+        const tag = child.tagName.toLowerCase();
+        if (tag === 'br') {
+          children.push({ _type: 'span', _key: key(), text: '\n', marks: [...marks] });
+        } else if (tag === 'strong' || tag === 'b') {
+          walk(child, [...marks, 'strong']);
+        } else if (tag === 'em' || tag === 'i') {
+          walk(child, [...marks, 'em']);
+        } else if (tag === 'a') {
+          const href = child.getAttribute('href') || '';
+          const mk = key();
+          markDefs.push({ _key: mk, _type: 'link', href, blank: true });
+          walk(child, [...marks, mk]);
+        } else {
+          walk(child, marks); // span/div/outros inline
+        }
+      }
+    }
+  })(node, []);
+  return { children, markDefs };
+}
+
+const block = (style, { children, markDefs }, extra = {}) =>
+  ({ _type: 'block', _key: key(), style, markDefs, children, ...extra });
+
+// Converte <ul>/<ol> em blocos de lista (Portable Text: listItem + level).
+function listBlocks(el, level, diag) {
+  const out = [];
+  const listItem = el.tagName.toLowerCase() === 'ol' ? 'number' : 'bullet';
+  for (const li of el.children) {
+    if (li.tagName.toLowerCase() !== 'li') continue;
+    // separa sub-listas do conteúdo inline do <li>
+    const sublists = [...li.children].filter(c => /^(UL|OL)$/.test(c.tagName));
+    sublists.forEach(s => s.remove());
+    const inline = processInline(li);
+    if (hasText(inline.children)) out.push(block('normal', inline, { listItem, level }));
+    for (const s of sublists) { diag.tags.list = (diag.tags.list||0)+1; out.push(...listBlocks(s, level + 1, diag)); }
+  }
+  return out;
+}
+
+/**
+ * html -> array de blocos Portable Text.
+ * opts: { uploadImage(url)->Promise<assetId|null>, stripFirstHeading, diag }
+ * diag acumula diagnóstico: { tags:{}, images, links, flags:Set }
+ */
+export async function htmlToPortableText(html, opts) {
+  const { uploadImage, stripFirstHeading = true, diag } = opts;
+  const { window } = new JSDOM(html);
+  const body = window.document.body;
+
+  if (stripFirstHeading) {
+    const first = [...body.children].find(el => /^H[1-6]$/.test(el.tagName));
+    if (first) { diag.strippedHeading = cleanText(first.textContent).trim(); first.remove(); }
+  }
+
+  const blocks = [];
+  for (const el of [...body.children]) {
+    const tag = el.tagName.toLowerCase();
+    diag.tags[tag] = (diag.tags[tag] || 0) + 1;
+
+    // imagem (figure>img ou img solto)
+    const img = tag === 'img' ? el : (tag === 'figure' ? el.querySelector('img') : null);
+    const iframe = el.querySelector ? el.querySelector('iframe') : null;
+
+    if (img && img.getAttribute('src')) {
+      diag.images++;
+      const assetId = await uploadImage(img.getAttribute('src'));
+      const b = { _type: 'image', _key: key() };
+      if (assetId) b.asset = { _type: 'reference', _ref: assetId };
+      else b._pendingSrc = img.getAttribute('src'); // dry-run
+      blocks.push(b);
+      continue;
+    }
+    if (iframe || tag === 'iframe') {
+      diag.flags.add('iframe');
+      const html = (iframe || el).outerHTML;
+      blocks.push({ _type: 'codigoEmbutido', _key: key(), codigo: html });
+      continue;
+    }
+    if (tag === 'table') {
+      diag.flags.add('table');
+      blocks.push({ _type: 'codigoEmbutido', _key: key(), codigo: el.outerHTML });
+      continue;
+    }
+    if (tag === 'ul' || tag === 'ol') {
+      blocks.push(...listBlocks(el, 1, diag));
+      continue;
+    }
+    if (tag === 'script') { diag.flags.add('script'); continue; } // não executa via set:html
+    if (tag === 'hr') continue;
+
+    const inline = processInline(el);
+    diag.links += inline.markDefs.filter(m => m._type === 'link').length;
+    if (!hasText(inline.children)) continue;
+    if (tag === 'h1' || tag === 'h2') blocks.push(block('h2', inline));
+    else if (/^h[3-6]$/.test(tag)) blocks.push(block('h3', inline));
+    else if (tag === 'blockquote') blocks.push(block('blockquote', inline));
+    else blocks.push(block('normal', inline)); // p, div e fallback
+  }
+  return blocks;
+}

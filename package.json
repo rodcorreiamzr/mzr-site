@@ -24,6 +24,8 @@
     "fsevents@2.3.3": true
   },
   "devDependencies": {
-    "@sanity/cli": "^7.4.0"
+    "@sanity/cli": "^7.4.0",
+    "jsdom": "^29.1.1",
+    "papaparse": "^5.5.4"
   }
 }
