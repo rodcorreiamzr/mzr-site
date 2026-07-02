@@ -64,6 +64,9 @@ export async function getFundoDocumentos() {
   const doc = await client.fetch(`
     *[_type == "fundoDocumentos"][0]{
       allocation{ mes, ano, "url": arquivo.asset->url },
+      allocationPrev{ mes, ano, "url": arquivo.asset->url },
+      allocationPlus{ mes, ano, "url": arquivo.asset->url },
+      allocationPlusII{ mes, ano, "url": arquivo.asset->url },
       globalEquities{ mes, ano, "url": arquivo.asset->url },
       cicloOlimpico{ mes, ano, "url": arquivo.asset->url },
       "fatosRelevantesPevc": fatosRelevantesPevc[defined(arquivo)]{
@@ -84,7 +87,13 @@ export async function getFundoDocumentos() {
     return [{ label, url: bloco.url }];
   }
 
-  const allocation = lamina(doc.allocation, 'Allocation');
+  // Multimercado (Allocation) tem 4 lâminas: Regular, Prev, Plus e Plus II.
+  const allocation = [
+    ...lamina(doc.allocation, 'Allocation'),
+    ...lamina(doc.allocationPrev, 'Allocation Prev'),
+    ...lamina(doc.allocationPlus, 'Allocation Plus'),
+    ...lamina(doc.allocationPlusII, 'Allocation Plus II'),
+  ];
   if (allocation.length) mapa.multimercado = { documentos: allocation, fatosRelevantes: [] };
 
   const globalEquities = lamina(doc.globalEquities, 'Global Equities');

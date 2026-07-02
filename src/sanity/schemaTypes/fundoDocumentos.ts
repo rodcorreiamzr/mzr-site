@@ -8,12 +8,13 @@ const MESES = [
 // Bloco de lâmina mensal de um fundo. NÃO acumula: o upload de um novo PDF
 // substitui a lâmina anterior. O título exibido na página é montado
 // automaticamente como "{Nome do fundo} — Lâmina {Mês}/{Ano}" (ver lib/sanity.ts).
-const laminaMensal = (name: string, title: string, nomeExibicao: string) =>
+const laminaMensal = (name: string, title: string, nomeExibicao: string, fieldset?: string) =>
   defineField({
     name,
     title,
     type: 'object',
-    options: { collapsible: false },
+    ...(fieldset ? { fieldset } : {}),
+    options: { collapsible: true, collapsed: false },
     fields: [
       defineField({
         name: 'mes',
@@ -79,9 +80,15 @@ export const fundoDocumentos = defineType({
   name: 'fundoDocumentos',
   title: 'Documentos de Fundos',
   type: 'document',
-  description: 'Lâminas mensais de cada fundo (uma por fundo — o upload substitui a anterior) e a lista acumulada de Fatos Relevantes do PE/VC. Estrutura fixa: um único registro.',
+  description: 'Lâminas mensais de cada fundo (o upload substitui a anterior) e a lista acumulada de Fatos Relevantes do PE/VC. Estrutura fixa: um único registro.',
+  fieldsets: [
+    { name: 'allocation', title: 'Allocation (Multimercado)', options: { collapsible: false } },
+  ],
   fields: [
-    laminaMensal('allocation', 'Allocation', 'Allocation'),
+    laminaMensal('allocation', 'Allocation', 'Allocation', 'allocation'),
+    laminaMensal('allocationPrev', 'Allocation Prev', 'Allocation Prev', 'allocation'),
+    laminaMensal('allocationPlus', 'Allocation Plus', 'Allocation Plus', 'allocation'),
+    laminaMensal('allocationPlusII', 'Allocation Plus II', 'Allocation Plus II', 'allocation'),
     laminaMensal('globalEquities', 'Global Equities', 'Global Equities'),
     laminaMensal('cicloOlimpico', 'Ciclo Olímpico', 'Ciclo Olímpico'),
     defineField({
