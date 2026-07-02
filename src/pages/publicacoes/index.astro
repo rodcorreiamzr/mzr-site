@@ -90,6 +90,36 @@ function formatarData(iso: string) {
       font-size: 15px;
     }
 
+    .pub-load-more-wrap {
+      display: flex;
+      justify-content: center;
+      margin-top: 48px;
+    }
+    .pub-load-more-wrap[hidden] { display: none; }
+    .pub-load-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Work Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 14px 28px;
+      border-radius: 100px;
+      border: 1px solid var(--navy-700);
+      background: transparent;
+      color: var(--navy-700);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .pub-load-more:hover {
+      background: var(--navy-700);
+      color: #fff;
+    }
+    .pub-load-more svg { transition: transform 0.2s; }
+    .pub-load-more:hover svg { transform: translateY(2px); }
+
     @media (max-width: 1024px) {
       .pub-grid { grid-template-columns: repeat(2, 1fr); }
     }
@@ -139,26 +169,63 @@ function formatarData(iso: string) {
           ))}
         </div>
       )}
+
+      <div class="pub-load-more-wrap" id="pubLoadMoreWrap" hidden>
+        <button class="pub-load-more" id="pubLoadMore" type="button">
+          Ver mais publicações
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+        </button>
+      </div>
     </div>
   </section>
 
   <script>
+    const PAGE_SIZE = 30;
     const btns = document.querySelectorAll('.filtro-btn');
-    const cards = document.querySelectorAll<HTMLElement>('#pubGrid .pub-card');
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('#pubGrid .pub-card'));
+    const loadMoreWrap = document.getElementById('pubLoadMoreWrap');
+    const loadMoreBtn = document.getElementById('pubLoadMore');
+
+    let filtro = 'todos';
+    let visibleCount = PAGE_SIZE;
+
+    function render() {
+      let shown = 0;
+      let totalMatches = 0;
+      cards.forEach((card) => {
+        const tag = card.dataset.tag || '';
+        const matches = filtro === 'todos' || tag === filtro;
+        if (!matches) {
+          card.style.display = 'none';
+          return;
+        }
+        totalMatches++;
+        if (shown < visibleCount) {
+          card.style.display = '';
+          shown++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+      if (loadMoreWrap) loadMoreWrap.hidden = visibleCount >= totalMatches;
+    }
 
     btns.forEach(btn => {
       btn.addEventListener('click', () => {
         btns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-
-        const filtro = (btn as HTMLElement).dataset.filtro;
-
-        cards.forEach((card) => {
-          const tag = card.dataset.tag || '';
-          card.style.display = (filtro === 'todos' || tag === filtro) ? '' : 'none';
-        });
+        filtro = (btn as HTMLElement).dataset.filtro || 'todos';
+        visibleCount = PAGE_SIZE;
+        render();
       });
     });
+
+    loadMoreBtn?.addEventListener('click', () => {
+      visibleCount += PAGE_SIZE;
+      render();
+    });
+
+    render();
   </script>
 
 </Base>
