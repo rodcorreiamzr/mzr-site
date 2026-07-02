@@ -37,6 +37,27 @@ const headings: { text: string; id: string }[] = pub.corpo
     return { text, id: slugify(text) };
   }) ?? [];
 
+// Meta description (SEO): gerada automaticamente do corpo, ~155 chars.
+// Fica SÓ na tag <meta name="description"> — não aparece em nenhum lugar
+// visível do site. Vale para toda publicação nova, sem trabalho manual.
+function gerarMetaDescription(corpo: any[], max = 155): string {
+  if (!Array.isArray(corpo)) return '';
+  const texto = corpo
+    .filter((b: any) => b._type === 'block')
+    .map((b: any) => (b.children || []).map((c: any) => c.text || '').join(''))
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!texto) return '';
+  if (texto.length <= max) return texto;
+  const corte = texto.slice(0, max);
+  const ultimoEspaco = corte.lastIndexOf(' ');
+  return (ultimoEspaco > 0 ? corte.slice(0, ultimoEspaco) : corte).replace(/[\s.,;:!?—-]+$/, '') + '…';
+}
+
+const metaDescription = gerarMetaDescription(pub.corpo)
+  || `${pub.titulo} — publicação da MZR Family Office.`;
+
 // Embeds de custom code com <script>/<style> (gráficos das cartas) são
 // renderizados dentro de um iframe (srcdoc) para isolar CSS e executar o JS.
 // Contador dá um id único a cada iframe para o auto-resize casar via postMessage.
@@ -84,7 +105,7 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
 
 <Base
   title={`${pub.titulo} — MZR Family Office`}
-  description={pub.resumo || ''}
+  description={metaDescription}
   ogImage={pub.ogImagemUrl || undefined}
   ogType="article"
 >
