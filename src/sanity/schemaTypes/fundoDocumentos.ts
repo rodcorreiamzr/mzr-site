@@ -1,38 +1,76 @@
 import { defineField, defineType } from 'sanity';
 
-// Objeto reutilizável: um link de documento (lâmina, prestação de contas, fato relevante).
-// Aceita upload de PDF OU uma URL externa. Ao subir um novo PDF no mesmo item,
-// o anterior é simplesmente substituído (sem versionamento).
-const documentoLink = {
+const MESES = [
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro',
+];
+
+// Bloco de lâmina mensal de um fundo. NÃO acumula: o upload de um novo PDF
+// substitui a lâmina anterior. O título exibido na página é montado
+// automaticamente como "{Nome do fundo} — Lâmina {Mês}/{Ano}" (ver lib/sanity.ts).
+const laminaMensal = (name: string, title: string, nomeExibicao: string) =>
+  defineField({
+    name,
+    title,
+    type: 'object',
+    options: { collapsible: false },
+    fields: [
+      defineField({
+        name: 'mes',
+        title: 'Mês',
+        type: 'string',
+        options: { list: MESES.map((m) => ({ title: m, value: m })), layout: 'dropdown' },
+      }),
+      defineField({
+        name: 'ano',
+        title: 'Ano',
+        type: 'string',
+        description: 'Ex.: 2026',
+      }),
+      defineField({
+        name: 'arquivo',
+        title: 'PDF da lâmina (atual)',
+        type: 'file',
+        options: { accept: '.pdf' },
+        description: 'Suba a lâmina do mês. Para trocar, substitua o arquivo aqui — o anterior é descartado (não acumula histórico).',
+      }),
+    ],
+    preview: {
+      select: { mes: 'mes', ano: 'ano', file: 'arquivo.asset.originalFilename' },
+      prepare({ mes, ano, file }: { mes?: string; ano?: string; file?: string }) {
+        const periodo = mes && ano ? `${mes}/${ano}` : 'sem mês/ano';
+        return {
+          title: `${nomeExibicao} — Lâmina ${periodo}`,
+          subtitle: file || '⚠ Nenhum PDF enviado',
+        };
+      },
+    },
+  });
+
+// Item da lista de Fatos Relevantes do PE/VC — este bloco ACUMULA.
+const fatoRelevante = {
   type: 'object',
-  name: 'documentoLink',
-  title: 'Documento',
+  name: 'fatoRelevante',
+  title: 'Fato Relevante',
   fields: [
     {
-      name: 'label',
-      title: 'Texto do link',
+      name: 'titulo',
+      title: 'Título',
       type: 'string',
-      description: 'Ex: "Allocation — Lâmina Maio/26", "Prestação de Contas".',
+      description: 'Texto do link exibido na página. Ex.: "01 de Setembro de 2025".',
       validation: (Rule: any) => Rule.required(),
     },
     {
       name: 'arquivo',
-      title: 'Arquivo PDF',
+      title: 'PDF',
       type: 'file',
       options: { accept: '.pdf' },
-      description: 'Suba o PDF aqui. Para atualizar, basta substituir o arquivo — o anterior é descartado.',
-    },
-    {
-      name: 'urlExterna',
-      title: 'URL externa (opcional)',
-      type: 'url',
-      description: 'Use apenas se o documento estiver hospedado fora do Sanity. Se houver PDF acima, ele tem prioridade.',
     },
   ],
   preview: {
-    select: { title: 'label', file: 'arquivo.asset.originalFilename', url: 'urlExterna' },
-    prepare({ title, file, url }: { title: string; file?: string; url?: string }) {
-      return { title: title || 'Documento', subtitle: file || url || '⚠ Sem arquivo nem URL' };
+    select: { title: 'titulo', file: 'arquivo.asset.originalFilename' },
+    prepare({ title, file }: { title?: string; file?: string }) {
+      return { title: title || 'Fato Relevante', subtitle: file || '⚠ Sem PDF' };
     },
   },
 };
@@ -41,49 +79,22 @@ export const fundoDocumentos = defineType({
   name: 'fundoDocumentos',
   title: 'Documentos de Fundos',
   type: 'document',
-  description: 'Lâminas e documentos exibidos no modal de cada fundo da home. Crie um registro por fundo.',
+  description: 'Lâminas mensais de cada fundo (uma por fundo — o upload substitui a anterior) e a lista acumulada de Fatos Relevantes do PE/VC. Estrutura fixa: um único registro.',
   fields: [
+    laminaMensal('allocation', 'Allocation', 'Allocation'),
+    laminaMensal('globalEquities', 'Global Equities', 'Global Equities'),
+    laminaMensal('cicloOlimpico', 'Ciclo Olímpico', 'Ciclo Olímpico'),
     defineField({
-      name: 'fundoId',
-      title: 'Fundo',
-      type: 'string',
-      options: {
-        list: [
-          { title: 'Multimercado — Allocation Retorno Absoluto', value: 'multimercado' },
-          { title: 'RV Internacional — Allocation Global Equities', value: 'globalequities' },
-          { title: 'RV Local — Ciclo Olímpico', value: 'cicloolimpico' },
-          { title: 'Alternativos — Allocation PE/VC', value: 'pevc' },
-        ],
-        layout: 'radio',
-      },
-      description: 'Selecione o fundo. Crie apenas um registro por fundo.',
-      validation: (Rule) => Rule.required(),
-    }),
-    defineField({
-      name: 'documentos',
-      title: 'Lâminas / Documentos',
+      name: 'fatosRelevantesPevc',
+      title: 'Fatos Relevantes — PE/VC',
       type: 'array',
-      of: [documentoLink],
-      description: 'Lâminas da tela principal do modal. Toda lâmina nova SUBSTITUI a anterior: troque o PDF (ou edite o texto) no mesmo item — não acumula histórico.',
-    }),
-    defineField({
-      name: 'fatosRelevantes',
-      title: 'Fatos Relevantes (somente PE/VC)',
-      type: 'array',
-      of: [documentoLink],
-      description: 'Apenas o fundo PE/VC — aparece na sub-tela "Fatos Relevantes". Aqui os itens ACUMULAM: adicione um novo a cada fato relevante e mantenha os anteriores. Ignorado nos demais fundos.',
+      of: [fatoRelevante],
+      description: 'Único bloco que ACUMULA. Adicione um item por fato relevante (PDF + Título); os anteriores permanecem. Cada item vira um link na sub-tela de Fatos Relevantes do PE/VC. Use os botões para editar ou remover um item.',
     }),
   ],
   preview: {
-    select: { fundoId: 'fundoId' },
-    prepare({ fundoId }: { fundoId: string }) {
-      const nomes: Record<string, string> = {
-        multimercado: 'Multimercado — Allocation Retorno Absoluto',
-        globalequities: 'RV Internacional — Allocation Global Equities',
-        cicloolimpico: 'RV Local — Ciclo Olímpico',
-        pevc: 'Alternativos — Allocation PE/VC',
-      };
-      return { title: nomes[fundoId] || 'Documentos de Fundo', subtitle: 'Documentos de Fundos' };
+    prepare() {
+      return { title: 'Documentos de Fundos' };
     },
   },
 });
