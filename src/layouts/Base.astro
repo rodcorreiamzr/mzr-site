@@ -146,19 +146,11 @@ const regulatorioDocs = regulatorioFromCms.length ? regulatorioFromCms : regulat
       opacity: 1;
       transition: opacity 0.4s ease;
     }
-    .navbar-logo-text {
-      font-family: 'Work Sans', sans-serif;
-      font-weight: 500;
-      font-size: 20px;
-      letter-spacing: 0.03em;
-      color: #fff;
-      line-height: 1;
-    }
-    .navbar-logo svg {
-      height: 13px;
+    .navbar-logo-mark {
+      height: 16px;
       width: auto;
+      display: block;
       flex-shrink: 0;
-      transform: translateY(-1px);
     }
     .navbar-nav {
       display: flex;
@@ -387,15 +379,8 @@ const regulatorioDocs = regulatorioFromCms.length ? regulatorioFromCms : regulat
       border-bottom: 1px solid rgba(255,255,255,0.07);
     }
     .footer-brand { display: flex; flex-direction: column; gap: 20px; }
-    .footer-logo { display: flex; align-items: center; gap: 0.06em; }
-    .footer-logo-text {
-      font-family: 'Work Sans', sans-serif;
-      font-weight: 500;
-      font-size: 20px;
-      letter-spacing: 0.03em;
-      color: #fff;
-    }
-    .footer-logo svg { height: 13px; width: auto; transform: translateY(-1px); }
+    .footer-logo { display: flex; align-items: center; }
+    .footer-logo-mark { height: 16px; width: auto; display: block; }
     .footer-seals {
       display: flex;
       flex-direction: column;
@@ -547,10 +532,10 @@ const regulatorioDocs = regulatorioFromCms.length ? regulatorioFromCms : regulat
 
   <nav class="navbar">
     <div class="navbar-inner">
-      <a href="/" class="navbar-logo">
-        <span class="navbar-logo-text">MZR</span>
-        <svg viewBox="4 0 24 40" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4,4 L27.56,18.5 L27.56,21.5 L4,36 L4,29.19 L18.93,20 L4,10.81 Z" fill="#C9A77C"/>
+      <a href="/" class="navbar-logo" aria-label="MZR — início">
+        <svg class="navbar-logo-mark" viewBox="40.63 33.7 221.65 55.44" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MZR">
+          <path d="M84.23 33.70L97.33 33.70L97.33 89.14L89.02 89.14L89.02 57.05L89.69 41.76L89.60 41.76L72.72 89.14L65.24 89.14L48.36 41.76L48.28 41.76L48.95 57.05L48.95 89.14L40.63 89.14L40.63 33.70L53.99 33.70L65.16 65.79L69.02 78.98L69.19 78.98L73.14 65.79L84.23 33.70ZM156.05 41.01L119.93 84.60L118.33 81.50L157.06 81.50L157.06 89.14L112.28 89.14L112.28 81.83L148.40 38.24L150 41.34L113.04 41.34L113.04 33.70L156.05 33.70L156.05 41.01ZM171.84 33.70L194.44 33.70Q203.34 33.70 208.59 38.15Q213.84 42.60 213.84 50.16L213.84 50.16Q213.84 57.98 208.59 62.22Q203.34 66.46 194.44 66.46L194.44 66.46L193.60 66.96L180.74 66.96L180.74 89.14L171.84 89.14L171.84 33.70ZM180.74 59.49L193.76 59.49Q199.22 59.49 201.87 57.26Q204.52 55.04 204.52 50.42L204.52 50.42Q204.52 45.88 201.87 43.61Q199.22 41.34 193.76 41.34L193.76 41.34L180.74 41.34L180.74 59.49ZM191.33 64.86L199.06 61.34L217.12 89.14L206.78 89.14L191.33 64.86Z" fill="#FFFFFF"/>
+          <path d="M4,4 L27.56,18.5 L27.56,21.5 L4,36 L4,29.19 L18.93,20 L4,10.81 Z" transform="translate(226.47 35.97) scale(1.2994 1.2994)" fill="#C9A77C"/>
         </svg>
       </a>
       <nav class="navbar-nav">
@@ -589,9 +574,9 @@ const regulatorioDocs = regulatorioFromCms.length ? regulatorioFromCms : regulat
       <div class="footer-top">
         <div class="footer-brand">
           <div class="footer-logo">
-            <span class="footer-logo-text">MZR</span>
-            <svg viewBox="4 0 24 40" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4,4 L27.56,18.5 L27.56,21.5 L4,36 L4,29.19 L18.93,20 L4,10.81 Z" fill="#C9A77C"/>
+            <svg class="footer-logo-mark" viewBox="40.63 33.7 221.65 55.44" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MZR">
+              <path d="M84.23 33.70L97.33 33.70L97.33 89.14L89.02 89.14L89.02 57.05L89.69 41.76L89.60 41.76L72.72 89.14L65.24 89.14L48.36 41.76L48.28 41.76L48.95 57.05L48.95 89.14L40.63 89.14L40.63 33.70L53.99 33.70L65.16 65.79L69.02 78.98L69.19 78.98L73.14 65.79L84.23 33.70ZM156.05 41.01L119.93 84.60L118.33 81.50L157.06 81.50L157.06 89.14L112.28 89.14L112.28 81.83L148.40 38.24L150 41.34L113.04 41.34L113.04 33.70L156.05 33.70L156.05 41.01ZM171.84 33.70L194.44 33.70Q203.34 33.70 208.59 38.15Q213.84 42.60 213.84 50.16L213.84 50.16Q213.84 57.98 208.59 62.22Q203.34 66.46 194.44 66.46L194.44 66.46L193.60 66.96L180.74 66.96L180.74 89.14L171.84 89.14L171.84 33.70ZM180.74 59.49L193.76 59.49Q199.22 59.49 201.87 57.26Q204.52 55.04 204.52 50.42L204.52 50.42Q204.52 45.88 201.87 43.61Q199.22 41.34 193.76 41.34L193.76 41.34L180.74 41.34L180.74 59.49ZM191.33 64.86L199.06 61.34L217.12 89.14L206.78 89.14L191.33 64.86Z" fill="#FFFFFF"/>
+              <path d="M4,4 L27.56,18.5 L27.56,21.5 L4,36 L4,29.19 L18.93,20 L4,10.81 Z" transform="translate(226.47 35.97) scale(1.2994 1.2994)" fill="#C9A77C"/>
             </svg>
           </div>
           <div class="footer-seals">
