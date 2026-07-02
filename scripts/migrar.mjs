@@ -23,12 +23,13 @@ const CATEGORY = opt('category');
 const DRY = has('dry');
 const PUBLISH = has('publish');
 const FORCE = has('force');
-const KEEP_HEADING = has('keep-first-heading');
 
 const PRESETS = {
-  livros:   { tag: 'Livros',         idPrefix: 'livro-',   stripPrefix: /^\s*livro:\s*/i },
-  cartas:   { tag: 'Cartas Mensais', idPrefix: 'carta-',   stripPrefix: /^\s*carta[^:]*:\s*/i },
-  analises: { tag: 'Analises',       idPrefix: 'analise-', stripPrefix: /^\s*an[aá]lises?[^:]*:\s*/i },
+  // stripFirstHeading: livros repetem o título como 1º heading (remover); cartas
+  // começam com uma seção real (RESUMO DO TIME...) que NÃO deve ser removida.
+  livros:   { tag: 'Livros',         idPrefix: 'livro-',   stripPrefix: /^\s*livro:\s*/i,               stripFirstHeading: true },
+  cartas:   { tag: 'Cartas Mensais', idPrefix: 'carta-',   stripPrefix: /^\s*carta[^:]*:\s*/i,           stripFirstHeading: false },
+  analises: { tag: 'Analises',       idPrefix: 'analise-', stripPrefix: /^\s*an[aá]lises?[^:]*:\s*/i,    stripFirstHeading: true },
 };
 
 if (!CSV || !CATEGORY) { console.error('Faltou --csv e/ou --category (livros|cartas|analises)'); process.exit(1); }
@@ -43,6 +44,8 @@ const NAME_COL = opt('name-col', 'Name');
 const BODY_COL = opt('body-col', 'Post Body');
 const DATE_COL = opt('date-col', 'Data');
 const IMG_WIDTH = opt('img-width') ? Number(opt('img-width')) : undefined; // largura % em todas as imagens do lote
+// remove o 1º heading (título repetido): default do preset, com override por flag
+const STRIP_HEADING = has('strip-first-heading') ? true : has('keep-first-heading') ? false : (preset?.stripFirstHeading ?? true);
 
 const token = process.env.SANITY_TOKEN;
 if (!token) { console.error('Faltou SANITY_TOKEN'); process.exit(1); }
@@ -113,7 +116,7 @@ for (const row of rows) {
   const diag = { tags: {}, images: 0, links: 0, flags: new Set(), strippedHeading: null };
   const body = row[BODY_COL] || '';
   if (!body.trim()) warnings.push(`${_id}: corpo vazio`);
-  const corpo = await htmlToPortableText(body, { uploadImage, stripFirstHeading: !KEEP_HEADING, diag, imgWidth: IMG_WIDTH });
+  const corpo = await htmlToPortableText(body, { uploadImage, stripFirstHeading: STRIP_HEADING, diag, imgWidth: IMG_WIDTH });
 
   for (const [t, c] of Object.entries(diag.tags)) globalTags[t] = (globalTags[t] || 0) + c;
   if (diag.flags.size) flaggedDocs.push({ _id, flags: [...diag.flags] });

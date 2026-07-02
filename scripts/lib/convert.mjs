@@ -79,6 +79,11 @@ export async function htmlToPortableText(html, opts) {
     if (first) { diag.strippedHeading = cleanText(first.textContent).trim(); first.remove(); }
   }
 
+  // Normaliza níveis: o heading mais raso presente vira H2 (gera o índice/TOC),
+  // os demais viram H3. Ex.: cartas usam <h4> nas seções -> viram H2.
+  const headingEls = [...body.children].filter(el => /^H[1-6]$/.test(el.tagName));
+  const minLevel = headingEls.length ? Math.min(...headingEls.map(el => +el.tagName[1])) : 2;
+
   const blocks = [];
   for (const el of [...body.children]) {
     const tag = el.tagName.toLowerCase();
@@ -108,7 +113,9 @@ export async function htmlToPortableText(html, opts) {
     // ⚠ <script> não executa via set:html no site estático — só flag pra revisão.
     const cls = (el.getAttribute && (el.getAttribute('class') || '')) || '';
     const hasScript = tag === 'script' || (el.querySelector && el.querySelector('script'));
-    if (hasScript || /embed/i.test(cls)) {
+    const isEmbed = (el.getAttribute && el.getAttribute('data-rt-embed-type')) ||
+      (el.querySelector && el.querySelector('[data-rt-embed-type]')) || /embed/i.test(cls);
+    if (hasScript || isEmbed) {
       diag.flags.add(hasScript ? 'script' : 'embed');
       blocks.push({ _type: 'codigoEmbutido', _key: key(), codigo: el.outerHTML });
       continue;
@@ -127,8 +134,7 @@ export async function htmlToPortableText(html, opts) {
     const inline = processInline(el);
     diag.links += inline.markDefs.filter(m => m._type === 'link').length;
     if (!hasText(inline.children)) continue;
-    if (tag === 'h1' || tag === 'h2') blocks.push(block('h2', inline));
-    else if (/^h[3-6]$/.test(tag)) blocks.push(block('h3', inline));
+    if (/^h[1-6]$/.test(tag)) blocks.push(block(+tag[1] === minLevel ? 'h2' : 'h3', inline));
     else if (tag === 'blockquote') blocks.push(block('blockquote', inline));
     else blocks.push(block('normal', inline)); // p, div e fallback
   }

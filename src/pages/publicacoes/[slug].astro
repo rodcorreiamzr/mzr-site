@@ -37,6 +37,11 @@ const headings: { text: string; id: string }[] = pub.corpo
     return { text, id: slugify(text) };
   }) ?? [];
 
+// Embeds de custom code com <script>/<style> (gráficos das cartas) são
+// renderizados dentro de um iframe (srcdoc) para isolar CSS e executar o JS.
+// Contador dá um id único a cada iframe para o auto-resize casar via postMessage.
+let embedCounter = 0;
+
 const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
   components: {
     block: {
@@ -48,8 +53,19 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       regulatorio: (props: any) => '<p class="pub-regulatorio">' + props.children + '</p>',
     },
     types: {
-      codigoEmbutido: ({ value }: any) =>
-        `<div class="pub-codigo-embutido">${value.codigo || ''}</div>`,
+      codigoEmbutido: ({ value }: any) => {
+        const codigo = value?.codigo || '';
+        // Snippet simples (ex: iframe do YouTube colado no CMS) vai inline.
+        if (!/<script|<style/i.test(codigo)) {
+          return `<div class="pub-codigo-embutido">${codigo}</div>`;
+        }
+        // Embed com script/style: isola num iframe srcdoc (executa o JS, sem vazar CSS).
+        const id = 'emb' + (embedCounter++);
+        const reporter = `<script>(function(){function h(){return Math.ceil(document.documentElement.getBoundingClientRect().height)}function s(){parent.postMessage({__embedId:'${id}',__embedH:h()},'*')}window.addEventListener('load',s);if(window.ResizeObserver){new ResizeObserver(s).observe(document.documentElement)}[250,800,2000].forEach(function(t){setTimeout(s,t)})})()</script>`;
+        const docHtml = `<!doctype html><html><head><meta charset="utf-8"><base target="_blank"><style>html,body{margin:0}body{overflow:hidden}</style></head><body>${codigo}${reporter}</body></html>`;
+        const esc = docHtml.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        return `<iframe class="pub-embed-frame" data-embed-id="${id}" srcdoc="${esc}" loading="lazy" sandbox="allow-scripts allow-popups"></iframe>`;
+      },
       image: ({ value }: any) => {
         const src = value?.assetUrl || '';
         const legenda = value?.legenda || '';
@@ -244,6 +260,9 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       margin: 32px 0;
     }
     .pub-corpo-content :global(.pub-codigo-embutido iframe) { margin: 0; }
+    /* Embed isolado (gráficos das cartas): altura inicial p/ reduzir o "pulo"
+       antes do auto-resize via postMessage. */
+    .pub-corpo-content :global(.pub-embed-frame) { height: 420px; }
     /* Texto regulatório: miúdo/cinza, justificado com última linha centralizada */
     .pub-corpo-content :global(.pub-regulatorio) { font-size: 8px !important; color: var(--neutral-400); line-height: 1.4; text-align: justify; text-align-last: center; margin: 24px 0; }
 
@@ -392,6 +411,15 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
 
   <script is:inline>
     (function () {
+      // Auto-resize dos embeds isolados (iframe srcdoc dos gráficos das cartas):
+      // cada iframe posta sua altura; casamos pelo data-embed-id.
+      window.addEventListener('message', function (e) {
+        var d = e.data;
+        if (!d || typeof d.__embedH !== 'number' || !d.__embedId) return;
+        var f = document.querySelector('iframe[data-embed-id="' + d.__embedId + '"]');
+        if (f && d.__embedH > 0) f.style.height = d.__embedH + 'px';
+      });
+
       // Sticky reading bar
       const bar = document.getElementById('pubStickyBar');
       const header = document.getElementById('pubHeader');
