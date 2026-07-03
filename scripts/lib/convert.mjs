@@ -88,14 +88,24 @@ export async function htmlToPortableText(html, opts) {
   const { window } = new JSDOM(html);
   const body = window.document.body;
 
+  // Webflow às vezes embrulha só um botão/link (ex.: "DOWNLOAD CARTA MENSAL")
+  // num <hN> pra estilizar — não é título de seção de verdade. Ignorado tanto
+  // pro strip-do-1º-heading quanto pra normalização de nível (senão um post
+  // sem outro heading real acaba tendo seu único link removido/rebaixado).
+  const hasTextOutsideLinks = (el) => {
+    const clone = el.cloneNode(true);
+    clone.querySelectorAll('a').forEach((a) => a.remove());
+    return cleanText(clone.textContent).trim().length > 0;
+  };
+
   if (stripFirstHeading) {
-    const first = [...body.children].find(el => /^H[1-6]$/.test(el.tagName));
+    const first = [...body.children].find(el => /^H[1-6]$/.test(el.tagName) && hasTextOutsideLinks(el));
     if (first) { diag.strippedHeading = cleanText(first.textContent).trim(); first.remove(); }
   }
 
   // Normaliza níveis: o heading mais raso presente vira H2 (gera o índice/TOC),
   // os demais viram H3. Ex.: cartas usam <h4> nas seções -> viram H2.
-  const headingEls = [...body.children].filter(el => /^H[1-6]$/.test(el.tagName));
+  const headingEls = [...body.children].filter(el => /^H[1-6]$/.test(el.tagName) && hasTextOutsideLinks(el));
   const minLevel = headingEls.length ? Math.min(...headingEls.map(el => +el.tagName[1])) : 2;
 
   const blocks = [];
@@ -156,7 +166,12 @@ export async function htmlToPortableText(html, opts) {
     const inline = await processInline(el, ctx);
     diag.links += inline.markDefs.filter(m => m._type === 'link').length;
     if (!hasText(inline.children)) continue;
-    if (/^h[1-6]$/.test(tag)) blocks.push(block(+tag[1] === minLevel ? 'h2' : 'h3', inline));
+    // Webflow às vezes embrulha só um botão/link (ex.: "DOWNLOAD CARTA MENSAL")
+    // num <h3>/<h5> pra estilizar — não é título de seção de verdade. Se todo o
+    // texto do heading está dentro de um único link, vira parágrafo normal.
+    const isLinkOnlyHeading = /^h[1-6]$/.test(tag) &&
+      inline.children.every(c => c._type !== 'span' || !c.text.trim() || c.marks.some(m => m !== 'strong' && m !== 'em'));
+    if (/^h[1-6]$/.test(tag) && !isLinkOnlyHeading) blocks.push(block(+tag[1] === minLevel ? 'h2' : 'h3', inline));
     else if (tag === 'blockquote') blocks.push(block('blockquote', inline));
     else blocks.push(block('normal', inline)); // p, div e fallback
   }
