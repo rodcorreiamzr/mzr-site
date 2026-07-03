@@ -15,10 +15,15 @@ export const slugify = (t) => t.toLowerCase().normalize('NFD')
 const hasText = (children) => children.some(c => c._type === 'span' && c.text.replace(/\s/g, '').length > 0);
 const norm = (s) => cleanText(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
 
+// link de PDF (ex.: Webflow uploads-ssl/*.pdf) -> reenvia como asset Sanity
+// e reescreve o href pra apontar pro CDN da Sanity (o link do Webflow morre
+// quando a conta for cancelada). Sem uploadPdf (ou dry-run) mantém o href original.
+const isPdfHref = (href) => /\.pdf(\?|#|$)/i.test(href || '');
+
 // Elemento -> {children:[spans], markDefs:[]} (processa inline: strong/em/a/br)
-function processInline(node) {
+async function processInline(node, ctx) {
   const children = [], markDefs = [];
-  (function walk(nd, marks) {
+  async function walk(nd, marks) {
     for (const child of nd.childNodes) {
       if (child.nodeType === 3) {
         const text = cleanText(child.textContent);
@@ -28,20 +33,28 @@ function processInline(node) {
         if (tag === 'br') {
           children.push({ _type: 'span', _key: key(), text: '\n', marks: [...marks] });
         } else if (tag === 'strong' || tag === 'b') {
-          walk(child, [...marks, 'strong']);
+          await walk(child, [...marks, 'strong']);
         } else if (tag === 'em' || tag === 'i') {
-          walk(child, [...marks, 'em']);
+          await walk(child, [...marks, 'em']);
         } else if (tag === 'a') {
-          const href = child.getAttribute('href') || '';
+          let href = child.getAttribute('href') || '';
+          if (isPdfHref(href) && ctx?.uploadPdf) {
+            ctx.diag.flags.add('pdf');
+            ctx.diag.pdfLinks = (ctx.diag.pdfLinks || 0) + 1;
+            const newUrl = await ctx.uploadPdf(href);
+            if (newUrl) href = newUrl;
+            else if (!ctx.dry) ctx.diag.flags.add('pdf-fail');
+          }
           const mk = key();
           markDefs.push({ _key: mk, _type: 'link', href, blank: true });
-          walk(child, [...marks, mk]);
+          await walk(child, [...marks, mk]);
         } else {
-          walk(child, marks); // span/div/outros inline
+          await walk(child, marks); // span/div/outros inline
         }
       }
     }
-  })(node, []);
+  }
+  await walk(node, []);
   return { children, markDefs };
 }
 
@@ -49,7 +62,7 @@ const block = (style, { children, markDefs }, extra = {}) =>
   ({ _type: 'block', _key: key(), style, markDefs, children, ...extra });
 
 // Converte <ul>/<ol> em blocos de lista (Portable Text: listItem + level).
-function listBlocks(el, level, diag) {
+async function listBlocks(el, level, diag, ctx) {
   const out = [];
   const listItem = el.tagName.toLowerCase() === 'ol' ? 'number' : 'bullet';
   for (const li of el.children) {
@@ -57,20 +70,21 @@ function listBlocks(el, level, diag) {
     // separa sub-listas do conteúdo inline do <li>
     const sublists = [...li.children].filter(c => /^(UL|OL)$/.test(c.tagName));
     sublists.forEach(s => s.remove());
-    const inline = processInline(li);
+    const inline = await processInline(li, ctx);
     if (hasText(inline.children)) out.push(block('normal', inline, { listItem, level }));
-    for (const s of sublists) { diag.tags.list = (diag.tags.list||0)+1; out.push(...listBlocks(s, level + 1, diag)); }
+    for (const s of sublists) { diag.tags.list = (diag.tags.list||0)+1; out.push(...await listBlocks(s, level + 1, diag, ctx)); }
   }
   return out;
 }
 
 /**
  * html -> array de blocos Portable Text.
- * opts: { uploadImage(url)->Promise<assetId|null>, stripFirstHeading, diag }
+ * opts: { uploadImage(url)->Promise<assetId|null>, uploadPdf(url)->Promise<url|null>, stripFirstHeading, diag }
  * diag acumula diagnóstico: { tags:{}, images, links, flags:Set }
  */
 export async function htmlToPortableText(html, opts) {
-  const { uploadImage, stripFirstHeading = true, diag, imgWidth, dry = false } = opts;
+  const { uploadImage, uploadPdf, stripFirstHeading = true, diag, imgWidth, dry = false } = opts;
+  const ctx = { uploadPdf, diag, dry };
   const { window } = new JSDOM(html);
   const body = window.document.body;
 
@@ -134,12 +148,12 @@ export async function htmlToPortableText(html, opts) {
       continue;
     }
     if (tag === 'ul' || tag === 'ol') {
-      blocks.push(...listBlocks(el, 1, diag));
+      blocks.push(...await listBlocks(el, 1, diag, ctx));
       continue;
     }
     if (tag === 'hr') continue;
 
-    const inline = processInline(el);
+    const inline = await processInline(el, ctx);
     diag.links += inline.markDefs.filter(m => m._type === 'link').length;
     if (!hasText(inline.children)) continue;
     if (/^h[1-6]$/.test(tag)) blocks.push(block(+tag[1] === minLevel ? 'h2' : 'h3', inline));

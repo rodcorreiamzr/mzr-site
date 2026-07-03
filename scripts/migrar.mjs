@@ -31,9 +31,10 @@ const PRESETS = {
   cartas:   { tag: 'Cartas Mensais', idPrefix: 'carta-',   stripPrefix: /^\s*carta[^:]*:\s*/i,           stripFirstHeading: false },
   analises: { tag: 'Analises',       idPrefix: 'analise-', stripPrefix: /^\s*an[aá]lises?[^:]*:\s*/i,    stripFirstHeading: true },
   gestoras: { tag: 'Gestoras',       idPrefix: 'gestora-', stripPrefix: /^$/,                             stripFirstHeading: false },
+  fofs:     { tag: 'FOFs',           idPrefix: 'fof-',     stripPrefix: /^$/,                             stripFirstHeading: true },
 };
 
-if (!CSV || !CATEGORY) { console.error('Faltou --csv e/ou --category (livros|cartas|analises)'); process.exit(1); }
+if (!CSV || !CATEGORY) { console.error('Faltou --csv e/ou --category (livros|cartas|analises|gestoras|fofs)'); process.exit(1); }
 if (!DRY && !PUBLISH) { console.error('Escolha --dry (preview) ou --publish (grava).'); process.exit(1); }
 const preset = PRESETS[CATEGORY];
 if (!preset && !opt('tag')) { console.error(`Categoria "${CATEGORY}" desconhecida. Use --tag e --id-prefix manualmente.`); process.exit(1); }
@@ -76,6 +77,30 @@ async function uploadImageReal(url) {
   }
 }
 const uploadImage = DRY ? async () => null : uploadImageReal;
+
+// ---- upload de PDF linkado (ex.: lâminas/cartas do FoF) -> asset "file",
+// href reescrito pro CDN da Sanity (dedup por hash já é nativo do Sanity) ----
+const assetCachePdf = new Map();
+async function uploadPdfReal(url) {
+  if (assetCachePdf.has(url)) return assetCachePdf.get(url);
+  if (!/^https?:\/\//i.test(url)) {
+    console.warn(`⚠ pdf ignorado (href não-http): ${url.slice(0, 80)}`);
+    assetCachePdf.set(url, null); return null;
+  }
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const buf = Buffer.from(await res.arrayBuffer());
+    const filename = decodeURIComponent(url.split('/').pop().split('?')[0]);
+    const asset = await client.assets.upload('file', buf, { filename });
+    assetCachePdf.set(url, asset.url);
+    return asset.url;
+  } catch (e) {
+    console.warn(`⚠ pdf não migrado (${e.message}): ${url.slice(0, 80)}`);
+    assetCachePdf.set(url, null); return null;
+  }
+}
+const uploadPdf = DRY ? async () => null : uploadPdfReal;
 
 // ---- data ----
 function toISODate(row) {
@@ -128,7 +153,7 @@ for (const row of rows) {
   const diag = { tags: {}, images: 0, links: 0, flags: new Set(), strippedHeading: null };
   const body = row[BODY_COL] || '';
   if (!body.trim()) warnings.push(`${_id}: corpo vazio`);
-  const corpo = await htmlToPortableText(body, { uploadImage, stripFirstHeading: STRIP_HEADING, diag, imgWidth: IMG_WIDTH, dry: DRY });
+  const corpo = await htmlToPortableText(body, { uploadImage, uploadPdf, stripFirstHeading: STRIP_HEADING, diag, imgWidth: IMG_WIDTH, dry: DRY });
 
   for (const [t, c] of Object.entries(diag.tags)) globalTags[t] = (globalTags[t] || 0) + c;
   if (diag.flags.size) flaggedDocs.push({ _id, flags: [...diag.flags] });

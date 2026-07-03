@@ -28,6 +28,7 @@ export const publicacao = defineType({
           { title: 'Análises', value: 'Analises' },
           { title: 'Livros', value: 'Livros' },
           { title: 'Gestoras', value: 'Gestoras' },
+          { title: 'FOFs', value: 'FOFs' },
         ],
         layout: 'radio',
       },
