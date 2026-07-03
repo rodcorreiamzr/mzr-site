@@ -27,6 +27,7 @@ export const publicacao = defineType({
           { title: 'Cartas Mensais', value: 'Cartas Mensais' },
           { title: 'Análises', value: 'Analises' },
           { title: 'Livros', value: 'Livros' },
+          { title: 'Gestoras', value: 'Gestoras' },
         ],
         layout: 'radio',
       },

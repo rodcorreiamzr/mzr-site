@@ -30,6 +30,7 @@ const PRESETS = {
   livros:   { tag: 'Livros',         idPrefix: 'livro-',   stripPrefix: /^\s*livro:\s*/i,               stripFirstHeading: true },
   cartas:   { tag: 'Cartas Mensais', idPrefix: 'carta-',   stripPrefix: /^\s*carta[^:]*:\s*/i,           stripFirstHeading: false },
   analises: { tag: 'Analises',       idPrefix: 'analise-', stripPrefix: /^\s*an[aá]lises?[^:]*:\s*/i,    stripFirstHeading: true },
+  gestoras: { tag: 'Gestoras',       idPrefix: 'gestora-', stripPrefix: /^$/,                             stripFirstHeading: false },
 };
 
 if (!CSV || !CATEGORY) { console.error('Faltou --csv e/ou --category (livros|cartas|analises)'); process.exit(1); }
@@ -55,13 +56,24 @@ const client = createClient({ projectId: 'xe11jg20', dataset: 'production', apiV
 const assetCache = new Map();
 async function uploadImageReal(url) {
   if (assetCache.has(url)) return assetCache.get(url);
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`fetch img ${res.status} ${url}`);
-  const buf = Buffer.from(await res.arrayBuffer());
-  const filename = decodeURIComponent(url.split('/').pop().split('?')[0]);
-  const asset = await client.assets.upload('image', buf, { filename });
-  assetCache.set(url, asset._id);
-  return asset._id;
+  // src inacessível (blob:/data:/relativo do Webflow) ou fetch falho: não aborta
+  // o lote — ignora a imagem (retorna null) e segue. O conversor pula o bloco.
+  if (!/^https?:\/\//i.test(url)) {
+    console.warn(`⚠ imagem ignorada (src não-http): ${url.slice(0, 80)}`);
+    assetCache.set(url, null); return null;
+  }
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const buf = Buffer.from(await res.arrayBuffer());
+    const filename = decodeURIComponent(url.split('/').pop().split('?')[0]);
+    const asset = await client.assets.upload('image', buf, { filename });
+    assetCache.set(url, asset._id);
+    return asset._id;
+  } catch (e) {
+    console.warn(`⚠ imagem ignorada (${e.message}): ${url.slice(0, 80)}`);
+    assetCache.set(url, null); return null;
+  }
 }
 const uploadImage = DRY ? async () => null : uploadImageReal;
 
@@ -116,7 +128,7 @@ for (const row of rows) {
   const diag = { tags: {}, images: 0, links: 0, flags: new Set(), strippedHeading: null };
   const body = row[BODY_COL] || '';
   if (!body.trim()) warnings.push(`${_id}: corpo vazio`);
-  const corpo = await htmlToPortableText(body, { uploadImage, stripFirstHeading: STRIP_HEADING, diag, imgWidth: IMG_WIDTH });
+  const corpo = await htmlToPortableText(body, { uploadImage, stripFirstHeading: STRIP_HEADING, diag, imgWidth: IMG_WIDTH, dry: DRY });
 
   for (const [t, c] of Object.entries(diag.tags)) globalTags[t] = (globalTags[t] || 0) + c;
   if (diag.flags.size) flaggedDocs.push({ _id, flags: [...diag.flags] });

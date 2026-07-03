@@ -70,7 +70,7 @@ function listBlocks(el, level, diag) {
  * diag acumula diagnóstico: { tags:{}, images, links, flags:Set }
  */
 export async function htmlToPortableText(html, opts) {
-  const { uploadImage, stripFirstHeading = true, diag, imgWidth } = opts;
+  const { uploadImage, stripFirstHeading = true, diag, imgWidth, dry = false } = opts;
   const { window } = new JSDOM(html);
   const body = window.document.body;
 
@@ -95,10 +95,18 @@ export async function htmlToPortableText(html, opts) {
 
     if (img && img.getAttribute('src')) {
       diag.images++;
-      const assetId = await uploadImage(img.getAttribute('src'));
+      const src = img.getAttribute('src');
+      const assetId = await uploadImage(src);
+      if (!assetId && !dry) {
+        // upload falhou (src blob:/data:/404 do Webflow) — pula o bloco em vez
+        // de publicar uma imagem sem asset. Registra no diagnóstico.
+        diag.skippedImages = (diag.skippedImages || 0) + 1;
+        (diag.skipped = diag.skipped || []).push(src);
+        continue;
+      }
       const b = { _type: 'image', _key: key() };
       if (assetId) b.asset = { _type: 'reference', _ref: assetId };
-      else b._pendingSrc = img.getAttribute('src'); // dry-run
+      else b._pendingSrc = src; // dry-run (preview)
       if (imgWidth) b.largura = imgWidth;
       blocks.push(b);
       continue;
@@ -137,6 +145,31 @@ export async function htmlToPortableText(html, opts) {
     if (/^h[1-6]$/.test(tag)) blocks.push(block(+tag[1] === minLevel ? 'h2' : 'h3', inline));
     else if (tag === 'blockquote') blocks.push(block('blockquote', inline));
     else blocks.push(block('normal', inline)); // p, div e fallback
+  }
+
+  applyCartaFixes(blocks);
+  return blocks;
+}
+
+// Ajustes recorrentes das publicações do Webflow (aplicados em todo lote; no-op
+// quando o conteúdo não bate):
+//  1) link "clique aqui para entrar em contato" apontava p/ mzrconsultoria.com
+//     (site que não existe mais) -> contato do site atual.
+//  2) o disclaimer padrão MMZR vira "Texto regulatório" (style regulatorio) sem
+//     itálico, igual à carta de referência (Maio/2026).
+const CONTATO_URL = 'https://mzrfo.com.br/#contato';
+const DISCLAIMER_PREFIX = norm('Este conteúdo tem propósito exclusivamente informativo');
+export function applyCartaFixes(blocks) {
+  for (const b of blocks) {
+    for (const md of b.markDefs || [])
+      if (md._type === 'link' && /mzrconsultoria/i.test(md.href || '')) md.href = CONTATO_URL;
+    if (b._type === 'block' && Array.isArray(b.children)) {
+      const txt = b.children.filter(c => c._type === 'span').map(c => c.text || '').join('');
+      if (norm(txt).startsWith(DISCLAIMER_PREFIX)) {
+        b.style = 'regulatorio';
+        for (const c of b.children) if (Array.isArray(c.marks)) c.marks = c.marks.filter(m => m !== 'em');
+      }
+    }
   }
   return blocks;
 }
