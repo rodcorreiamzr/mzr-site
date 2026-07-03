@@ -463,14 +463,18 @@ function formatDate(dateStr: string) {
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .form-field { display: flex; flex-direction: column; gap: 6px; }
   .form-label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; color: rgba(255,255,255,0.45); text-transform: uppercase; }
-  .form-input, .form-select, .form-textarea { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 12px 16px; font-family: 'Work Sans', sans-serif; font-size: 14px; color: rgba(255,255,255,0.85); outline: none; transition: border-color 0.2s, background 0.2s; width: 100%; }
+  .form-input, .form-textarea { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 12px 16px; font-family: 'Work Sans', sans-serif; font-size: 14px; color: rgba(255,255,255,0.85); outline: none; transition: border-color 0.2s, background 0.2s; width: 100%; }
   .form-input::placeholder, .form-textarea::placeholder { color: rgba(255,255,255,0.20); }
-  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--gold-400); background: rgba(255,255,255,0.08); }
-  .form-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 7L11 1' stroke='rgba(255,255,255,0.30)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; cursor: pointer; }
-  .form-select option { background: var(--navy-800); color: #fff; }
+  .form-input:focus, .form-textarea:focus { border-color: var(--gold-400); background: rgba(255,255,255,0.08); }
   .form-textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
   .form-submit { background: var(--gold-400); color: var(--navy-900); font-family: 'Work Sans', sans-serif; font-weight: 600; font-size: 14px; padding: 14px 32px; border-radius: 8px; border: none; cursor: pointer; transition: background 0.2s; width: 100%; margin-top: 4px; }
   .form-submit:hover { background: var(--gold-500); }
+  .form-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+  .form-status { font-size: 13px; line-height: 1.5; display: none; }
+  .form-status.show { display: block; }
+  .form-status.success { color: #6fd39a; }
+  .form-status.error { color: #e78787; }
+  .form-honeypot { display: none; }
 
   /* ── Responsive home ── */
   @media (max-width: 1024px) {
@@ -1013,26 +1017,19 @@ function formatDate(dateStr: string) {
           </div>
         </div>
       </div>
-      <form class="form reveal" onsubmit="return false;">
+      <form class="form reveal" id="contactForm">
+        <input type="hidden" name="access_key" value="e6bbe3d2-bf12-41e9-b1cd-5f45359a370f">
+        <input type="hidden" name="subject" value="Novo contato pelo site MZR Family Office">
+        <input type="hidden" name="from_name" value="Site MZR Family Office">
+        <input type="checkbox" name="botcheck" class="form-honeypot" tabindex="-1" autocomplete="off">
+        <div class="form-field"><label class="form-label">Nome</label><input class="form-input" type="text" name="name" placeholder="Seu nome completo" required></div>
         <div class="form-row">
-          <div class="form-field"><label class="form-label">Nome</label><input class="form-input" type="text" placeholder="Seu nome completo"></div>
-          <div class="form-field"><label class="form-label">E-mail</label><input class="form-input" type="email" placeholder="seu@email.com.br"></div>
+          <div class="form-field"><label class="form-label">E-mail</label><input class="form-input" type="email" name="email" placeholder="seu@email.com.br" required></div>
+          <div class="form-field"><label class="form-label">Telefone</label><input class="form-input" type="tel" name="telefone" placeholder="(XX) XXXXX-XXXX"></div>
         </div>
-        <div class="form-row">
-          <div class="form-field"><label class="form-label">Telefone</label><input class="form-input" type="tel" placeholder="(XX) XXXXX-XXXX"></div>
-          <div class="form-field">
-            <label class="form-label">Assunto</label>
-            <select class="form-select">
-              <option value="" disabled selected>Selecione</option>
-              <option>Family Office</option>
-              <option>Consultoria</option>
-              <option>Investimentos</option>
-              <option>Outro</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-field"><label class="form-label">Mensagem</label><textarea class="form-textarea" placeholder="Como podemos ajudar?"></textarea></div>
+        <div class="form-field"><label class="form-label">Mensagem</label><textarea class="form-textarea" name="message" placeholder="Como podemos ajudar?" required></textarea></div>
         <button class="form-submit" type="submit">Enviar mensagem</button>
+        <p class="form-status" id="contactFormStatus" role="status"></p>
       </form>
     </div>
   </div>
@@ -1553,6 +1550,48 @@ function formatDate(dateStr: string) {
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') { closeFundoModal(); document.getElementById('regulatorioModal').classList.remove('open'); document.body.style.overflow = ''; }
   });
+
+  // Formulário de contato (Web3Forms)
+  (function() {
+    var form = document.getElementById('contactForm');
+    var status = document.getElementById('contactFormStatus');
+    if (!form || !status) return;
+    var submitBtn = form.querySelector('.form-submit');
+    var submitLabel = submitBtn.textContent;
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando...';
+      status.className = 'form-status';
+      status.textContent = '';
+
+      fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: { 'Accept': 'application/json' },
+        body: new FormData(form)
+      })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.success) {
+            form.reset();
+            status.textContent = 'Mensagem enviada com sucesso. Em breve entraremos em contato.';
+            status.className = 'form-status show success';
+          } else {
+            status.textContent = 'Não foi possível enviar sua mensagem. Tente novamente ou fale pelo WhatsApp.';
+            status.className = 'form-status show error';
+          }
+        })
+        .catch(function() {
+          status.textContent = 'Não foi possível enviar sua mensagem. Tente novamente ou fale pelo WhatsApp.';
+          status.className = 'form-status show error';
+        })
+        .finally(function() {
+          submitBtn.disabled = false;
+          submitBtn.textContent = submitLabel;
+        });
+    });
+  })();
 </script>
 
 </Base>
