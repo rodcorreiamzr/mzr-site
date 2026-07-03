@@ -418,8 +418,10 @@ function formatDate(dateStr: string) {
   .fundo-modal-desc { font-size: 15px; color: rgba(255,255,255,0.72); line-height: 1.75; margin-bottom: 36px; }
   .fundo-modal-docs-label { font-size: 10px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.38); margin-bottom: 16px; }
   .fundo-modal-docs { display: flex; flex-direction: column; gap: 12px; }
+  .fundo-modal-safra-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold-400); opacity: 0.85; margin: 18px 0 8px; }
+  .fundo-modal-safra-label:first-child { margin-top: 0; }
   .fundo-modal-gestoras { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 4px; }
-  .fundo-modal-gestora-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); border-radius: 6px; padding: 9px 12px; font-size: 13px; color: rgba(255,255,255,0.75); text-align: center; }
+  .fundo-modal-gestora-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.10); border-radius: 6px; padding: 8px 10px; font-size: 11px; color: rgba(255,255,255,0.75); text-align: center; }
   @media (max-width: 480px) { .fundo-modal-gestoras { grid-template-columns: repeat(2, 1fr); } }
   .fundo-modal-back { display: flex; align-items: center; gap: 6px; background: none; border: none; color: var(--gold-400); font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; padding: 0; margin-bottom: 28px; opacity: 0.85; transition: opacity 0.18s; }
   .fundo-modal-back:hover { opacity: 1; }
@@ -1040,7 +1042,7 @@ function formatDate(dateStr: string) {
       <div id="fundoModalGestorasWrap" style="display:none; padding-top:28px;">
         <div class="fundo-modal-divider"></div>
         <div class="fundo-modal-docs-label">Gestoras Alocadas</div>
-        <div class="fundo-modal-gestoras" id="fundoModalGestoras"></div>
+        <div id="fundoModalGestoras"></div>
       </div>
     </div>
     <div id="fundoModalScreenSub" style="display:none;">
@@ -1422,7 +1424,10 @@ function formatDate(dateStr: string) {
       desc: 'Com objetivo de diversificar a alocação de nossos clientes em participações de empresas privadas, o Allocation PE/VC investe em 12 fundos, entre as categorias de Venture Capital, Private Equity e Special Situations, possibilitando a alocação em diversas gestoras, estratégias, setores e companhias com um cheque mínimo reduzido versus a média da indústria. O veículo é um FIP local para investidores profissionais com mecanismo de chamada de capital.',
       docsLabel: 'Documentos',
       docs: [{ label: 'Fatos Relevantes', subContent: { tag: 'Alternativos', title: 'Fatos Relevantes', subtitle: 'Allocation Alternativos PE/VC II Fundo de Investimento em Participações Multiestratégia IE', docsLabel: 'Fatos Relevantes a partir de setembro/2025', links: [{ label: '01 de Setembro de 2025', href: '#' }, { label: '04 de Setembro de 2025', href: '#' }, { label: '26 de Novembro de 2025', href: '#' }, { label: '09 de Março de 2026', href: '#' }] } }],
-      gestoras: ['Monashees', 'One VC', 'XP Asset Management', 'Starboard', 'Kinea', 'Vinci Partners', 'Shift Capital', 'Mindset Ventures', 'Riverwood Capital', 'Cloud 9']
+      gestorasSafras: [
+        { label: 'Safra I (2022)', items: ['XP Spec. Opp', 'Vinci', 'Monashees', 'ONEVC', 'Shift Capital', 'Mindset Vent.', 'Cloud 9', 'Kinea', 'Starboard III', 'Strata Capital', 'Norte Ventures', 'BlueOak', 'Riverwood', 'Mission Co', 'Soma Capital'] },
+        { label: 'Safra II (2025)', items: ['Starboard', 'Perfin', 'Kanoa Capital', 'Strata', 'General Atlantic', 'Cloud 9', 'Big Bets', 'Hypersphere', 'Warburg Pincus', 'Radix', 'ONEVC Fund III', 'Central', 'Vinci VCP IV'] }
+      ]
     }
   };
 
@@ -1485,10 +1490,13 @@ function formatDate(dateStr: string) {
       if (doc.internal) { return '<a href="' + doc.href + '" class="fundo-modal-doc-link">' + docIcon + doc.label + navChevron + '</a>'; }
       return '<a href="' + doc.href + '" class="fundo-modal-doc-link" target="_blank" rel="noopener">' + docIcon + doc.label + '</a>';
     }).join('') : '';
-    var hasGestoras = d.gestoras && d.gestoras.length > 0;
+    var hasGestoras = d.gestorasSafras && d.gestorasSafras.length > 0;
     var gesWrap = document.getElementById('fundoModalGestorasWrap');
     gesWrap.style.display = hasGestoras ? '' : 'none';
-    if (hasGestoras) document.getElementById('fundoModalGestoras').innerHTML = d.gestoras.map(function(g) { return '<div class="fundo-modal-gestora-item">' + g + '</div>'; }).join('');
+    if (hasGestoras) document.getElementById('fundoModalGestoras').innerHTML = d.gestorasSafras.map(function(safra) {
+      return '<div class="fundo-modal-safra-label">' + safra.label + '</div><div class="fundo-modal-gestoras">' +
+        safra.items.map(function(g) { return '<div class="fundo-modal-gestora-item">' + g + '</div>'; }).join('') + '</div>';
+    }).join('');
     document.getElementById('fundoModal').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
