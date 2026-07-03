@@ -214,7 +214,7 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
        não é injetado nos elementos vindos do CMS). .pub-corpo-content segue
        com escopo, então as regras não vazam para o resto do site. */
     .pub-corpo-content { line-height: 1.80; color: var(--neutral-700); overflow-wrap: break-word; word-break: break-word; }
-    .pub-corpo-content :global(p) { font-size: 17px; margin-bottom: 24px; }
+    .pub-corpo-content :global(p) { font-size: 17px; margin-bottom: 24px; text-align: justify; }
     .pub-corpo-content :global(p:last-child) { margin-bottom: 0; }
     .pub-corpo-content :global(h2) {
       font-family: 'Spectral', serif;
