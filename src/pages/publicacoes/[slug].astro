@@ -346,6 +346,36 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       white-space: nowrap;
       flex-shrink: 0;
     }
+    .pub-sticky-toc-btn {
+      display: none;
+      background: none;
+      border: none;
+      padding: 4px;
+      color: rgba(255,255,255,0.45);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .pub-sticky-toc-btn:hover, .pub-sticky-toc-btn[aria-expanded="true"] { color: var(--gold-400); }
+    .pub-sticky-toc-panel {
+      display: none;
+      flex-direction: column;
+      padding: 14px 20px 18px;
+      max-height: 60vh;
+      overflow-y: auto;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .pub-sticky-toc-panel.open { display: flex; }
+    .pub-sticky-toc-panel-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 10px;
+    }
+    .pub-sticky-toc-panel .pub-toc-link { color: rgba(255,255,255,0.60); border-left-color: transparent; }
+    .pub-sticky-toc-panel .pub-toc-link:hover { color: #fff; }
+    .pub-sticky-toc-panel .pub-toc-link.active { color: var(--gold-400); border-left-color: var(--gold-400); }
 
     /* Responsivo */
     @media (max-width: 1100px) {
@@ -378,6 +408,13 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
         transform: translateY(-50%);
       }
       .pub-sticky-title { font-size: 15px; text-align: center; padding: 0 28px; }
+      .pub-sticky-toc-btn {
+        display: inline-flex;
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
     }
   </style>
 
@@ -392,7 +429,23 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
       </a>
       <p class="pub-sticky-title">{pub.titulo}</p>
       <span class="pub-sticky-date">{formatarData(pub.data)}</span>
+      {headings.length > 0 && (
+        <button class="pub-sticky-toc-btn" id="pubStickyTocBtn" aria-label="Abrir índice" aria-expanded="false" aria-controls="pubStickyTocPanel">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+            <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+          </svg>
+        </button>
+      )}
     </div>
+    {headings.length > 0 && (
+      <nav class="pub-sticky-toc-panel" id="pubStickyTocPanel">
+        <p class="pub-sticky-toc-panel-label">Neste artigo</p>
+        {headings.map(h => (
+          <a href={`#${h.id}`} class="pub-toc-link" data-id={h.id}>{h.text}</a>
+        ))}
+      </nav>
+    )}
   </div>
 
   <!-- Header -->
@@ -470,6 +523,16 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
         }, { threshold: 0 }).observe(header);
       }
 
+      // Sticky bar: toggle do índice reduzido (mobile)
+      const tocBtn = document.getElementById('pubStickyTocBtn');
+      const tocPanel = document.getElementById('pubStickyTocPanel');
+      if (tocBtn && tocPanel) {
+        tocBtn.addEventListener('click', function() {
+          const open = tocPanel.classList.toggle('open');
+          tocBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+      }
+
       // TOC scroll spy + click
       const tocLinks = document.querySelectorAll('.pub-toc-link');
       if (!tocLinks.length) return;
@@ -482,6 +545,10 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
           if (!target) return;
           var top = target.getBoundingClientRect().top + window.scrollY - scrollOffset;
           window.scrollTo({ top: top, behavior: 'smooth' });
+          if (tocPanel && tocPanel.contains(this)) {
+            tocPanel.classList.remove('open');
+            if (tocBtn) tocBtn.setAttribute('aria-expanded', 'false');
+          }
         });
       });
 
