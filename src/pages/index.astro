@@ -305,7 +305,7 @@ function formatDate(dateStr: string) {
   .qs-expand-trigger.dark { color: rgba(255,255,255,0.55); }
   .qs-expandable { max-height: 0; overflow: hidden; transition: max-height 0.75s ease; background: var(--neutral-100); }
   .qs-expandable.open { max-height: 1100px; }
-  .qs-expand-content { padding: 24px 0 72px; }
+  .qs-expand-content { padding-top: 24px; padding-bottom: 72px; }
   .qs-expand-content p { font-size: clamp(15px, 1.3vw, 17px); color: var(--navy-700); line-height: 1.80; max-width: 780px; opacity: 0.85; }
   .qs-expand-subtitle { font-family: 'Spectral', serif; font-weight: 400; font-size: clamp(20px, 2vw, 28px); color: var(--navy-800); margin-top: 52px; margin-bottom: 28px; }
   .qs-carousel { position: relative; overflow: hidden; border-radius: 12px; max-width: 860px; }
@@ -381,7 +381,7 @@ function formatDate(dateStr: string) {
   .diferencial-title { font-family: 'Spectral', serif; font-weight: 400; font-size: 22px; color: #fff; line-height: 1.25; letter-spacing: -0.01em; }
   .diferenciais-expandable { max-height: 0; overflow: hidden; transition: max-height 0.75s ease; }
   .diferenciais-expandable.open { max-height: 600px; }
-  .diferenciais-expand-content { padding: 8px 0 28px; }
+  .diferenciais-expand-content { padding-top: 8px; padding-bottom: 28px; }
   .diferenciais-expand-content p { font-size: clamp(15px, 1.3vw, 17px); color: rgba(255,255,255,0.72); line-height: 1.80; max-width: 860px; margin-bottom: 20px; }
   .diferenciais-expand-content ul { padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; max-width: 860px; }
   .diferenciais-expand-content li { font-size: clamp(15px, 1.3vw, 17px); color: rgba(255,255,255,0.72); line-height: 1.72; padding-left: 18px; position: relative; }
@@ -401,7 +401,7 @@ function formatDate(dateStr: string) {
   .fundo-disclaimer { font-size: 11px; color: var(--neutral-400); line-height: 1.6; margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--neutral-200); max-width: 720px; }
   .fundos-expandable { max-height: 0; overflow: hidden; transition: max-height 0.75s ease; }
   .fundos-expandable.open { max-height: 1200px; }
-  .fundos-expand-content { padding: 8px 0 28px; }
+  .fundos-expand-content { padding-top: 8px; padding-bottom: 28px; }
   .fundos-expand-title { font-family: 'Spectral', serif; font-weight: 400; font-size: clamp(20px, 2vw, 28px); color: var(--navy-800); margin-bottom: 28px; }
   .fundos-expand-content p { font-size: clamp(15px, 1.3vw, 17px); color: var(--navy-700); line-height: 1.80; max-width: 860px; opacity: 0.85; margin-bottom: 20px; }
   .fundos-expand-content p:last-of-type { margin-bottom: 0; }
@@ -1039,7 +1039,7 @@ function formatDate(dateStr: string) {
       <div class="fundo-modal-divider" id="fundoModalDivider"></div>
       <div class="fundo-modal-docs-label" id="fundoModalDocsLabel">Lâminas</div>
       <div class="fundo-modal-docs" id="fundoModalDocs"></div>
-      <div id="fundoModalGestorasWrap" style="display:none; padding-top:28px;">
+      <div id="fundoModalGestorasWrap" style="display:none;">
         <div class="fundo-modal-divider"></div>
         <div class="fundo-modal-docs-label">Gestoras Alocadas</div>
         <div id="fundoModalGestoras"></div>
