@@ -88,6 +88,22 @@ export async function htmlToPortableText(html, opts) {
   const { window } = new JSDOM(html);
   const body = window.document.body;
 
+  // Imagem embutida de .docx (via mammoth) às vezes fica no mesmo <p> que
+  // outro conteúdo (marcador, título em negrito) por causa de quebra de linha
+  // no Word em vez de parágrafo novo. Isola cada <img> assim no seu próprio
+  // <p>, preservando a ordem — o resto do conteúdo do parágrafo original cai
+  // no caminho normal (título/marcador) sem a imagem atrapalhando.
+  for (const p of [...body.querySelectorAll('p')]) {
+    const imgs = [...p.querySelectorAll('img')];
+    if (imgs.length && p.children.length > 1) {
+      for (const im of imgs) {
+        const wrapper = window.document.createElement('p');
+        wrapper.appendChild(im);
+        p.parentNode.insertBefore(wrapper, p);
+      }
+    }
+  }
+
   // Webflow às vezes embrulha só um botão/link (ex.: "DOWNLOAD CARTA MENSAL")
   // num <hN> pra estilizar — não é título de seção de verdade. Ignorado tanto
   // pro strip-do-1º-heading quanto pra normalização de nível (senão um post
@@ -113,8 +129,11 @@ export async function htmlToPortableText(html, opts) {
     const tag = el.tagName.toLowerCase();
     diag.tags[tag] = (diag.tags[tag] || 0) + 1;
 
-    // imagem (figure>img ou img solto)
-    const img = tag === 'img' ? el : (tag === 'figure' ? el.querySelector('img') : null);
+    // imagem (figure>img, img solto, ou <p> só com a img dentro — é como o
+    // mammoth exporta imagem embutida de .docx: <p><img/></p>, sem <figure>)
+    const isImgOnlyPara = tag === 'p' && el.children.length === 1 &&
+      el.children[0].tagName === 'IMG' && cleanText(el.textContent).trim() === '';
+    const img = tag === 'img' ? el : (tag === 'figure' || isImgOnlyPara ? el.querySelector('img') : null);
     const iframe = el.querySelector ? el.querySelector('iframe') : null;
 
     if (img && img.getAttribute('src')) {
