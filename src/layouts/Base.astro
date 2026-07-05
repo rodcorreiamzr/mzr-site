@@ -72,13 +72,18 @@ const regulatorioDocs = regulatorioFromCms.length ? regulatorioFromCms : regulat
   <style is:global>
     /* ── Reset & Base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+      background: #0A1727;
+      overscroll-behavior-y: none;
+    }
     body {
       font-family: 'Work Sans', sans-serif;
       background: #EFEDE8;
       color: #1A2028;
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
+      overscroll-behavior-y: none;
     }
 
     /* ── Tokens ── */
