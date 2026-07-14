@@ -150,16 +150,19 @@ function formatDate(dateStr: string) {
   .logo-g-line   { animation: revealLTR 0.38s ease-out 1.62s both; }
   .logo-g-family { animation: revealLTR 0.60s ease-out 1.83s both; }
   .logo-g-office { animation: revealLTR 0.60s ease-out 2.04s both; }
-  .hero-tagline { max-width: 640px; }
-  .hero-tagline h1 { opacity: 0; animation: fadeIn 1.8s ease 2.3s forwards; }
+  .hero-tagline h1 { opacity: 0; animation: fadeIn 1.8s ease 2.3s forwards; max-width: 640px; }
   .hero-tagline p {
-    font-size: clamp(15px, 1.8vw, 18px);
+    white-space: nowrap;
+    font-size: clamp(13px, 1.8vw, 18px);
     font-weight: 400;
     color: rgba(255,255,255,0.65);
     line-height: 1.65;
     letter-spacing: -0.005em;
     opacity: 0;
     animation: fadeIn 1.6s ease 3.3s forwards;
+  }
+  @media (max-width: 640px) {
+    .hero-tagline p { white-space: normal; }
   }
   .hero-scroll {
     position: absolute;
