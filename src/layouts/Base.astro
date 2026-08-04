@@ -6,12 +6,14 @@ export interface Props {
   description?: string;
   ogImage?: string;
   ogType?: string;
+  noindex?: boolean;
 }
 const {
   title = 'MZR Family Office',
   description = 'Multi-Family Office Completo e Independente',
   ogImage,
   ogType = 'website',
+  noindex = false,
 } = Astro.props;
 const canonicalURL = Astro.url.href;
 
@@ -40,6 +42,7 @@ const regulatorioDocs = regulatorioFromCms.length ? regulatorioFromCms : regulat
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="description" content={description} />
+  {noindex && <meta name="robots" content="noindex, nofollow" />}
   <title>{title}</title>
   <link rel="canonical" href={canonicalURL} />
   <!-- Open Graph -->
