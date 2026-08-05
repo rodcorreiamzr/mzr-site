@@ -260,7 +260,9 @@ async function main() {
         { chave: 'posicionamento', re: /^mmzr_tabela_posicionamento_.*\.html$/i },
         { chave: 'mercado', re: /^mmzr_indicadores_mercado_.*\.html$/i },
         { chave: 'rentabilidades', re: /^mmzr_tabela_rentabilidades_.*\.html$/i },
-        { chave: 'ranking', re: /^Ranking_Anual_Multimercado\.html$/i },
+        // o gerador Ruby escreve com sufixo do mês (Ranking_Anual_Multimercado_julho2026.html);
+        // versões rebrandadas à mão (Junho/26) vieram sem sufixo — aceita os dois
+        { chave: 'ranking', re: /^Ranking_Anual_Multimercado.*\.html$/i },
       ]
     : [{ chave: 'header', re: /^header\.html$/i }];
 
@@ -337,16 +339,44 @@ async function main() {
   // nunca vem em negrito (o título sim), ele aparece isolado no 1º span com
   // texto do bloco — detectamos por aí e separamos o resto como bloco novo.
   const MARKER_RE = /^\[\[TABELA:(\w+)\]\]$/;
+
+  // Marcadores implícitos: frases que o analista escreve no lugar do marcador
+  // quando manda o widget "por fora" (ex.: o HTML do ranking multimercado, que
+  // chega por e-mail em vez de sair da planilha). O parágrafo inteiro é trocado
+  // pelo widget correspondente.
+  const MARCADORES_IMPLICITOS = [
+    // "Link do HMTL da tabela ranking anual enviado no paralelo" (o typo HMTL/HTML
+    // varia) — tolerante de propósito: só precisa citar link + tabela do ranking
+    { chave: 'ranking', re: /^link\b.*\btabela ranking\b/i },
+  ];
+
+  // Anotações cruas do analista que às vezes vêm coladas no marcador (as fontes
+  // que alimentam a tabela, copiadas da planilha). Não vão pro ar — a tabela já
+  // mostra o mesmo conteúdo.
+  const NOTAS_CRUAS_RE = /^novo formato\b/i;
+
   function splitLeadingMarker(b) {
     if (b._type !== 'block' || !b.children?.length) return null;
     const spans = b.children;
     let i = 0;
     while (i < spans.length && !(spans[i].text || '').trim()) i++;
     if (i >= spans.length) return null;
-    const m = (spans[i].text || '').trim().match(MARKER_RE);
-    if (!m) return null;
+    const primeiro = (spans[i].text || '').trim();
+    const m = primeiro.match(MARKER_RE);
+    if (!m) {
+      const textoTotal = spans.map((c) => c.text || '').join('').trim();
+      const implicito = MARCADORES_IMPLICITOS.find((x) => x.re.test(textoTotal));
+      if (!implicito) return null;
+      avisos.push(`"${textoTotal.slice(0, 60)}" tratado como marcador implícito de [[TABELA:${implicito.chave}]]`);
+      return { chave: implicito.chave, remainderBlock: null };
+    }
     let resto = spans.slice(i + 1);
     while (resto.length && !(resto[0].text || '').trim()) resto.shift();
+    const restoTexto = resto.map((c) => c.text || '').join('').trim();
+    if (resto.length && NOTAS_CRUAS_RE.test(restoTexto)) {
+      avisos.push(`anotações cruas depois de [[TABELA:${m[1]}]] descartadas ("${restoTexto.slice(0, 40)}…")`);
+      resto = [];
+    }
     return { chave: m[1], remainderBlock: resto.length ? { ...b, _key: key(), children: resto } : null };
   }
 
@@ -367,10 +397,21 @@ async function main() {
     }
     corpoComWidgets.push(b);
   }
+  // Título de seção pra widget anexado no fim (sem marcador no texto): a tabela
+  // de rentabilidades fecha a carta debaixo do H2 "RENTABILIDADES" (padrão desde
+  // a carta de Junho/26) — sem ele a tabela apareceria solta, fora do índice.
+  const TITULO_ANEXO = { rentabilidades: 'RENTABILIDADES' };
   for (const chave of Object.keys(widgets)) {
     if (!usados.has(chave)) {
+      const titulo = TITULO_ANEXO[chave];
+      if (titulo) {
+        corpoComWidgets.push({
+          _type: 'block', _key: key(), style: 'h2', markDefs: [],
+          children: [{ _type: 'span', _key: key(), text: titulo, marks: ['strong'] }],
+        });
+      }
       corpoComWidgets.push({ _type: 'codigoEmbutido', _key: key(), codigo: widgets[chave] });
-      avisos.push(`arquivo do widget "${chave}" não tinha marcador no texto — anexado ao final`);
+      avisos.push(`arquivo do widget "${chave}" não tinha marcador no texto — anexado ao final${titulo ? ` (com H2 "${titulo}")` : ''}`);
     }
   }
 
@@ -459,11 +500,99 @@ async function main() {
       }
       corpoFinal.push(b);
     }
+
+    // 7c. subtítulo da carta -> H3.
+    //
+    // O analista escreve o subtítulo do mês colado no 1º parágrafo do "Resumo do
+    // time de estratégia", separado só por quebra de linha e prefixado por
+    // "Carta - " (ex.: "Carta - Ormuz aberto, ..."). Vira um H3 próprio, sem o
+    // prefixo — como ficou a carta de Junho/26 (ajustada à mão na época).
+    const SUBTITULO_RE = /^carta\s*[-–—]\s*/i;
+    for (let i = 1; i < corpoFinal.length; i++) {
+      const anterior = corpoFinal[i - 1];
+      const b = corpoFinal[i];
+      if (anterior?._type !== 'block' || anterior.style !== 'h2') continue;
+      if (b._type !== 'block' || (b.style && b.style !== 'normal') || !b.children?.length) continue;
+      const primeiro = b.children[0];
+      if (primeiro?._type !== 'span' || !SUBTITULO_RE.test((primeiro.text || '').trim())) continue;
+      // só separa se o subtítulo termina ali mesmo (o corpo vem depois da quebra)
+      const seguintes = b.children.slice(1);
+      if (!seguintes.length || (seguintes[0].text || '').trim()) continue;
+      const texto = (primeiro.text || '').trim().replace(SUBTITULO_RE, '');
+      const resto = seguintes.slice();
+      while (resto.length && !(resto[0].text || '').trim()) resto.shift();
+      if (!texto || !resto.length) continue;
+      corpoFinal.splice(i, 1,
+        { ...b, _key: key(), style: 'h3', children: [{ ...primeiro, _key: key(), text: texto }] },
+        { ...b, _key: key(), children: resto });
+      avisos.push(`subtítulo "${texto}" promovido a H3 (prefixo "Carta -" removido)`);
+      i++;
+    }
+
+    // 7c-bis. H3 "Desempenho dos portfólios e posicionamento" antes do parágrafo
+    // que abre a seção de desempenho das carteiras ("Em julho, observamos..."),
+    // logo acima dos parágrafos "Na carteira Conservadora/Moderada/...". O docx
+    // não traz esse subtítulo, mas ele existe nas cartas publicadas desde
+    // Junho/26 (era inserido à mão) e alimenta o índice da página.
+    const H3_DESEMPENHO = 'Desempenho dos portfólios e posicionamento';
+    const textoDoBloco = (b) => (b?._type === 'block' ? (b.children || []).map((c) => c.text || '').join('').trim() : '');
+    const jaTem = corpoFinal.some((b) => b.style === 'h3' && textoDoBloco(b) === H3_DESEMPENHO);
+    const iCarteira = corpoFinal.findIndex((b) => /^Na carteira Conservadora\b/i.test(textoDoBloco(b)));
+    if (!jaTem && iCarteira > 0) {
+      const anterior = corpoFinal[iCarteira - 1];
+      const alvo = /^Em \p{L}+,?\s+observamos\b/iu.test(textoDoBloco(anterior)) ? iCarteira - 1 : iCarteira;
+      corpoFinal.splice(alvo, 0, {
+        _type: 'block', _key: key(), style: 'h3', markDefs: [],
+        children: [{ _type: 'span', _key: key(), text: H3_DESEMPENHO, marks: [] }],
+      });
+      avisos.push(`H3 "${H3_DESEMPENHO}" inserido antes de "${textoDoBloco(corpoFinal[alvo + 1]).slice(0, 40)}…"`);
+    }
+
+    // 7d. "Fonte: ..." logo depois de uma imagem vira a legenda daquela imagem.
+    const comLegendas = [];
+    for (const b of corpoFinal) {
+      const anterior = comLegendas[comLegendas.length - 1];
+      const texto = b._type === 'block' ? (b.children || []).map((c) => c.text || '').join('').trim() : '';
+      if (anterior?._type === 'image' && /^fonte\b/i.test(texto) && texto.length < 120) {
+        anterior.legenda = texto;
+        avisos.push(`"${texto}" virou legenda da imagem anterior`);
+        continue;
+      }
+      comLegendas.push(b);
+    }
+
     corpoComWidgets.length = 0;
-    corpoComWidgets.push(...corpoFinal);
+    corpoComWidgets.push(...comLegendas);
   }
 
   corpo = corpoComWidgets;
+
+  // ---- 7e. rodapé padrão da carta (CTA + texto regulatório) ----
+  //
+  // Fecha toda carta mensal desde Abril/26 (antes era colado à mão no Studio).
+  // Texto idêntico ao publicado nas cartas anteriores.
+  if (CATEGORY === 'carta') {
+    const jaTemRegulatorio = corpo.some((b) => b._type === 'block' && b.style === 'regulatorio');
+    if (!jaTemRegulatorio) {
+      const linkKey = key();
+      corpo.push({
+        _type: 'block', _key: key(), style: 'normal',
+        markDefs: [{ _key: linkKey, _type: 'link', blank: false, href: 'https://mzrfo.com.br/#contato' }],
+        children: [
+          { _type: 'span', _key: key(), marks: [], text: 'Caso queira saber mais sobre nossos serviços ' },
+          { _type: 'span', _key: key(), marks: [linkKey], text: 'clique aqui para entrar em contato\n‍' },
+        ],
+      });
+      corpo.push({
+        _type: 'block', _key: key(), style: 'regulatorio', markDefs: [],
+        children: [{
+          _type: 'span', _key: key(), marks: [],
+          text: 'Este conteúdo tem propósito exclusivamente informativo e se baseia em dados estatísticos, metodologias probabilísticas, fatos concretos do mercado financeiro e em resultados financeiros apurados e nas conclusões da MMZR Family Office considerando o perfil de clientes que se adequem aos ativos e estratégias que compõem as carteiras apresentadas acima. Em nenhum momento, o conteúdo desta mensagem representa recomendações de investimento financeiro de qualquer natureza. Para obter uma recomendação de investimento personalizada da MMZR Family Office acesse nosso site mmzrfo.com.br e entre em contato conosco.',
+        }],
+      });
+      console.log('✓ rodapé padrão (CTA + texto regulatório) anexado ao final');
+    }
+  }
 
   // ---- 8. monta o documento ----
 
