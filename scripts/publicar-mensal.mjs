@@ -536,11 +536,43 @@ async function main() {
     // Junho/26 (era inserido à mão) e alimenta o índice da página.
     const H3_DESEMPENHO = 'Desempenho dos portfólios e posicionamento';
     const textoDoBloco = (b) => (b?._type === 'block' ? (b.children || []).map((c) => c.text || '').join('').trim() : '');
-    const jaTem = corpoFinal.some((b) => b.style === 'h3' && textoDoBloco(b) === H3_DESEMPENHO);
+    const mesmoTitulo = (t) => t.trim().toLowerCase().replace(/[.:]$/, '') === H3_DESEMPENHO.toLowerCase();
+    // já é um bloco próprio? (parágrafo solto) — só vira H3, sem inserir outro
+    const iSolto = corpoFinal.findIndex((b) => b._type === 'block' && mesmoTitulo(textoDoBloco(b)));
+    if (iSolto >= 0 && corpoFinal[iSolto].style !== 'h3') {
+      corpoFinal[iSolto] = { ...corpoFinal[iSolto], style: 'h3' };
+      avisos.push(`parágrafo "${H3_DESEMPENHO}" promovido a H3`);
+    }
+    const jaTem = corpoFinal.some((b) => b.style === 'h3' && mesmoTitulo(textoDoBloco(b)));
     const iCarteira = corpoFinal.findIndex((b) => /^Na carteira Conservadora\b/i.test(textoDoBloco(b)));
     if (!jaTem && iCarteira > 0) {
       const anterior = corpoFinal[iCarteira - 1];
       const alvo = /^Em \p{L}+,?\s+observamos\b/iu.test(textoDoBloco(anterior)) ? iCarteira - 1 : iCarteira;
+
+      // O analista costuma escrever esse subtítulo colado no FIM do parágrafo
+      // anterior (Shift+Enter em vez de parágrafo novo). Nesse caso, tira de lá
+      // em vez de duplicar o texto na página.
+      const acima = corpoFinal[alvo - 1];
+      if (acima?._type === 'block' && Array.isArray(acima.children)) {
+        const spans = acima.children.slice();
+        let ult = spans.length - 1;
+        while (ult >= 0 && !(spans[ult].text || '').trim()) ult--;
+        const textoUlt = ult >= 0 ? (spans[ult].text || '') : '';
+        let achou = false;
+        if (mesmoTitulo(textoUlt)) {
+          spans.splice(ult, spans.length - ult);
+          achou = true;
+        } else if (mesmoTitulo(textoUlt.split('\n').pop() || '')) {
+          spans[ult] = { ...spans[ult], text: textoUlt.slice(0, textoUlt.lastIndexOf('\n')) };
+          achou = true;
+        }
+        if (achou) {
+          while (spans.length && !(spans[spans.length - 1].text || '').trim()) spans.pop();
+          corpoFinal[alvo - 1] = { ...acima, children: spans };
+          avisos.push(`"${H3_DESEMPENHO}" retirado do fim do parágrafo anterior (virou o H3)`);
+        }
+      }
+
       corpoFinal.splice(alvo, 0, {
         _type: 'block', _key: key(), style: 'h3', markDefs: [],
         children: [{ _type: 'span', _key: key(), text: H3_DESEMPENHO, marks: [] }],
