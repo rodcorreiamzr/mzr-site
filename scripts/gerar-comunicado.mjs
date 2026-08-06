@@ -62,15 +62,18 @@ const FLAGS = {
           </svg>`,
 };
 
-// Com transição (taxaAnterior != taxaAtual): "de → PARA" (PARA em negrito só
-// no header, seguindo o padrão da carta de referência). Sem transição: só o
-// valor atual, sem negrito (ex.: range do Fed Funds Rate quando mantém).
-function rateHtml(d, arrowTag, boldOnTransition = false) {
+// No card do corpo (header) a TAXA ATUAL vem sempre em negrito — corte,
+// aumento ou manutenção — porque é o número que o leitor procura. Com
+// transição (taxaAnterior != taxaAtual) sai "de → PARA", só o PARA em negrito;
+// sem transição (ex.: range do Fed Funds Rate quando mantém), o valor único
+// em negrito. No card do OG o negrito não se aplica: lá a taxa inteira já é
+// 600 por CSS.
+function rateHtml(d, arrowTag, boldAtual = false) {
+  const atual = boldAtual ? `<b>${d.taxaAtual}</b>` : d.taxaAtual;
   if (d.taxaAnterior && d.taxaAnterior !== d.taxaAtual) {
-    const atual = boldOnTransition ? `<b>${d.taxaAtual}</b>` : d.taxaAtual;
     return `${d.taxaAnterior}<span class="${arrowTag}">→</span>${atual}`;
   }
-  return d.taxaAtual;
+  return atual;
 }
 
 function buildHeader(dados, lados) {
@@ -100,9 +103,9 @@ function buildHeader(dados, lados) {
   font-family: 'Work Sans', sans-serif;
   color: #1D3557;
   -webkit-font-smoothing: antialiased;
+  /* ocupa exatamente a largura da coluna de texto do artigo — sem max-width
+     próprio, senão o card fica mais estreito que os parágrafos ao redor */
   width: 100%;
-  max-width: 760px;
-  margin: 0 auto;
   background: #FDFCFB;
   border: 1px solid #D8D3CA;
   border-radius: 12px;

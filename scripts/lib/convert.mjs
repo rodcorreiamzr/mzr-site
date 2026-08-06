@@ -10,7 +10,7 @@ export const key = () => 'k' + (n++).toString(36) + Math.random().toString(36).s
 const ZW = /[​‌‍⁠﻿]/g;
 const cleanText = (s) => s.replace(ZW, '').replace(/ /g, ' ');
 export const slugify = (t) => t.toLowerCase().normalize('NFD')
-  .replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9\s]/g, '')
+  .replace(/[̀-ͯ]/g, '').replace(/[/–—]/g, ' ').replace(/[^a-z0-9\s]/g, '')
   .trim().replace(/\s+/g, '-');
 const hasText = (children) => children.some(c => c._type === 'span' && c.text.replace(/\s/g, '').length > 0);
 const norm = (s) => cleanText(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');

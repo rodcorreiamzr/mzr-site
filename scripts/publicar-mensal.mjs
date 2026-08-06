@@ -224,16 +224,16 @@ async function main() {
   }
 
   let ogPngPath = null;
+  const outName = CATEGORY === 'carta'
+    ? `mmzr_og_${mesAno.mes.toLowerCase()}${mesAno.ano}.png`
+    : `mmzr_og_${path.basename(workDir)}.png`;
+  const outPath = path.join(workDir, outName);
   if (!PULAR_OG) {
     const ogHtmlName = CATEGORY === 'carta'
       ? `mmzr_og_mes_${mesAno.mes.toLowerCase()}${mesAno.ano}.html`
       : 'og.html';
     const ogHtmlPath = path.join(workDir, ogHtmlName);
     if (fs.existsSync(ogHtmlPath)) {
-      const outName = CATEGORY === 'carta'
-        ? `mmzr_og_${mesAno.mes.toLowerCase()}${mesAno.ano}.png`
-        : `mmzr_og_${path.basename(workDir)}.png`;
-      const outPath = path.join(workDir, outName);
       try {
         await screenshotOgCard(ogHtmlPath, outPath);
         ogPngPath = outPath;
@@ -245,6 +245,15 @@ async function main() {
     } else if (CATEGORY === 'carta') {
       avisos.push(`nenhum "${ogHtmlName}" encontrado na pasta — carta vai sem capa OG automática`);
     }
+  }
+
+  // --pular-og (ou screenshot que falhou): reaproveita a PNG já gerada na
+  // pasta. Sem isso a republicação sobe o documento SEM ogImagem e apaga a
+  // capa que já estava no ar — o publish é createOrReplace, regrava o doc
+  // inteiro, não faz merge de campos.
+  if (!ogPngPath && fs.existsSync(outPath)) {
+    ogPngPath = outPath;
+    console.log(`↺ Capa OG reaproveitada do disco: ${outName}`);
   }
 
   const ogFinalPath = OG_OVERRIDE ? path.resolve(OG_OVERRIDE) : ogPngPath;
@@ -401,8 +410,18 @@ async function main() {
   // de rentabilidades fecha a carta debaixo do H2 "RENTABILIDADES" (padrão desde
   // a carta de Junho/26) — sem ele a tabela apareceria solta, fora do índice.
   const TITULO_ANEXO = { rentabilidades: 'RENTABILIDADES' };
+  // Exceção: o card de decisões do comunicado é o resumo visual da notícia e
+  // abre o texto (foi assim no comunicado de Junho/26). Quando o analista
+  // escreve o .docx do zero, sem o marcador do modelo, ele entra no topo — não
+  // anexado no fim como os widgets da carta.
+  const WIDGET_NO_TOPO = new Set(['header']);
   for (const chave of Object.keys(widgets)) {
     if (!usados.has(chave)) {
+      if (WIDGET_NO_TOPO.has(chave)) {
+        corpoComWidgets.unshift({ _type: 'codigoEmbutido', _key: key(), codigo: widgets[chave] });
+        avisos.push(`arquivo do widget "${chave}" não tinha marcador no texto — inserido no topo`);
+        continue;
+      }
       const titulo = TITULO_ANEXO[chave];
       if (titulo) {
         corpoComWidgets.push({
@@ -598,6 +617,44 @@ async function main() {
   }
 
   corpo = corpoComWidgets;
+
+  // ---- 7f. comunicado: pseudo-títulos em negrito -> H2 (país) / H3 (visão) ----
+  //
+  // Mesmo problema da carta: o analista não usa os estilos de título do Word,
+  // escreve "Brasil", "EUA" e "Visão MZR:" em negrito num parágrafo solto. No
+  // comunicado publicado de Junho/26 (gabarito) esses viraram H2 (país) e H3
+  // (visão) — é o que alimenta o índice da página. O ":" do fim sai.
+  if (CATEGORY === 'comunicado') {
+    const VISAO_RE = /^vis[ãa]o\s+m{1,2}zr\b/i;
+    const isBoldOnly = (c) => c._type === 'span' && (c.marks || []).length === 1 && c.marks[0] === 'strong';
+    for (let i = 0; i < corpo.length; i++) {
+      const b = corpo[i];
+      if (b._type !== 'block' || (b.style && b.style !== 'normal') || !b.children?.length) continue;
+      const spans = b.children.filter((c) => c._type === 'span');
+      const visiveis = spans.filter((c) => (c.text || '').trim());
+      if (!visiveis.length || !visiveis.every(isBoldOnly)) continue;
+      const texto = visiveis.map((c) => c.text || '').join('').trim().replace(/\s*:\s*$/, '');
+      // negrito longo é ênfase de parágrafo inteiro, não título de seção
+      if (!texto || texto.length > 60) continue;
+      const style = VISAO_RE.test(texto) ? 'h3' : 'h2';
+      corpo[i] = { ...b, style, markDefs: [], children: [{ _type: 'span', _key: key(), marks: [], text: texto }] };
+      avisos.push(`"${texto}" promovido a ${style.toUpperCase()}`);
+    }
+
+    // rodapé regulatório — texto idêntico ao dos comunicados anteriores (o
+    // .docx do modelo traz um parecido, mas o do analista costuma vir sem).
+    const jaTemRegulatorio = corpo.some((b) => b._type === 'block' && b.style === 'regulatorio');
+    if (!jaTemRegulatorio) {
+      corpo.push({
+        _type: 'block', _key: key(), style: 'regulatorio', markDefs: [],
+        children: [{
+          _type: 'span', _key: key(), marks: [],
+          text: 'Este material foi elaborado pela MMZR Family Office exclusivamente para fins informativos, não constituindo oferta, solicitação, recomendação ou análise de investimento, e não considera objetivos, situação financeira ou necessidades específicas de cada investidor. Rentabilidade passada não representa garantia de rentabilidade futura. Elaborado em conformidade com o Código ANBIMA de Regulação e Melhores Práticas.',
+        }],
+      });
+      console.log('✓ texto regulatório padrão anexado ao final');
+    }
+  }
 
   // ---- 7e. rodapé padrão da carta (CTA + texto regulatório) ----
   //
