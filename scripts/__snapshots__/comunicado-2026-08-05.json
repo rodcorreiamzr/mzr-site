@@ -1,0 +1,228 @@
+{
+  "_id": "analise-comunicado-copom-fed-05-08",
+  "_type": "publicacao",
+  "titulo": "Comunicado COPOM / FED 05/08",
+  "slug": {
+    "_type": "slug",
+    "current": "comunicado-copom-fed-05-08"
+  },
+  "tag": "Analises",
+  "data": "2026-08-05",
+  "corpo": [
+    {
+      "_type": "codigoEmbutido",
+      "_key": "k0",
+      "codigo": "<style>\n.mzrdec, .mzrdec * { box-sizing: border-box; margin: 0; padding: 0; }\n.mzrdec {\n  font-family: 'Work Sans', sans-serif;\n  color: #1D3557;\n  -webkit-font-smoothing: antialiased;\n  /* ocupa exatamente a largura da coluna de texto do artigo — sem max-width\n     próprio, senão o card fica mais estreito que os parágrafos ao redor */\n  width: 100%;\n  background: #FDFCFB;\n  border: 1px solid #D8D3CA;\n  border-radius: 12px;\n  padding: 28px 32px;\n  container-type: inline-size;\n}\n.mzrdec-grid {\n  display: grid;\n  grid-template-columns: 1fr 1px 1fr;\n  gap: 0 28px;\n}\n.mzrdec-div { background: #D8D3CA; align-self: stretch; }\n.mzrdec-card { display: flex; flex-direction: column; gap: 10px; }\n.mzrdec-top { display: flex; align-items: center; gap: 9px; }\n.mzrdec-top .mzrdec-flag { flex-shrink: 0; display: block; }\n.mzrdec .mzrdec-country {\n  font-family: 'Spectral', serif;\n  font-weight: 600;\n  font-size: 16px;\n  letter-spacing: -0.01em;\n  color: #1D3557;\n}\n.mzrdec .mzrdec-rate {\n  font-weight: 300;\n  font-size: 26px;\n  color: #1D3557;\n  font-variant-numeric: tabular-nums;\n  letter-spacing: -0.01em;\n  line-height: 1.1;\n}\n.mzrdec .mzrdec-rate b { font-weight: 600; }\n.mzrdec .mzrdec-arrow { color: #C9A77C; margin: 0 6px; font-weight: 400; font-size: 18px; }\n.mzrdec .mzrdec-sub { font-size: 13px; font-weight: 400; color: #6B7A8D; line-height: 1.5; }\n.mzrdec .mzrdec-badge {\n  display: inline-flex; align-items: center;\n  font-family: 'Work Sans', sans-serif;\n  font-weight: 600; font-size: 11px; letter-spacing: 0.04em;\n  text-transform: uppercase;\n  padding: 6px 13px; border-radius: 20px; width: fit-content;\n  margin-top: 2px;\n}\n.mzrdec .mzrdec-cut  { background: #EAF3EE; color: #1E7A4E; }\n.mzrdec .mzrdec-hold { background: #ECEEF2; color: #1D3557; }\n.mzrdec .mzrdec-hike { background: #FBECEC; color: #B91C1C; }\n\n@container (max-width: 480px) {\n  .mzrdec { padding: 22px 20px; }\n  .mzrdec-grid { grid-template-columns: 1fr; gap: 20px 0; }\n  .mzrdec-div { width: 100%; height: 1px; }\n  .mzrdec .mzrdec-rate { font-size: 22px; }\n}\n</style>\n\n<div class=\"mzrdec\">\n  <div class=\"mzrdec-grid\">\n    <div class=\"mzrdec-card\">\n      <div class=\"mzrdec-top\">\n        <span class=\"mzrdec-flag\">\n          <svg width=\"22\" height=\"15\" viewBox=\"0 0 24 16\" xmlns=\"http://www.w3.org/2000/svg\" style=\"border-radius:2px;display:block;\">\n            <rect width=\"24\" height=\"16\" rx=\"2\" fill=\"#009C3B\"/>\n            <polygon points=\"12,2 22,8 12,14 2,8\" fill=\"#FEDF00\"/>\n            <circle cx=\"12\" cy=\"8\" r=\"4\" fill=\"#002776\"/>\n          </svg>\n        </span>\n        <span class=\"mzrdec-country\">Brasil · Copom</span>\n      </div>\n      <div class=\"mzrdec-rate\">14,25%<span class=\"mzrdec-arrow\">→</span><b>14,00%</b></div>\n      <div class=\"mzrdec-sub\">Taxa Selic a.a. · 4ª reunião consecutiva de corte</div>\n      <span class=\"mzrdec-badge mzrdec-cut\">Corte de 25 bps</span>\n    </div>\n    <div class=\"mzrdec-div\"></div>\n    <div class=\"mzrdec-card\">\n      <div class=\"mzrdec-top\">\n        <span class=\"mzrdec-flag\">\n          <svg width=\"22\" height=\"15\" viewBox=\"0 0 24 16\" xmlns=\"http://www.w3.org/2000/svg\" style=\"border-radius:2px;display:block;\">\n            <rect width=\"24\" height=\"16\" rx=\"2\" fill=\"#B22234\"/>\n            <rect y=\"1.23\" width=\"24\" height=\"1.23\" fill=\"#fff\"/>\n            <rect y=\"3.69\" width=\"24\" height=\"1.23\" fill=\"#fff\"/>\n            <rect y=\"6.15\" width=\"24\" height=\"1.23\" fill=\"#fff\"/>\n            <rect y=\"8.61\" width=\"24\" height=\"1.23\" fill=\"#fff\"/>\n            <rect y=\"11.07\" width=\"24\" height=\"1.23\" fill=\"#fff\"/>\n            <rect y=\"13.53\" width=\"24\" height=\"1.23\" fill=\"#fff\"/>\n            <rect width=\"10\" height=\"8.6\" fill=\"#3C3B6E\"/>\n          </svg>\n        </span>\n        <span class=\"mzrdec-country\">EUA · FOMC</span>\n      </div>\n      <div class=\"mzrdec-rate\"><b>3,50% – 3,75%</b></div>\n      <div class=\"mzrdec-sub\">Fed Funds Rate · 5ª reunião consecutiva de manutenção</div>\n      <span class=\"mzrdec-badge mzrdec-hold\">Manutenção</span>\n    </div>\n  </div>\n</div>\n"
+    },
+    {
+      "_type": "block",
+      "_key": "k1",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "k2",
+          "marks": [],
+          "text": "Brasil"
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "k3",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "k4",
+          "text": "Em decisão novamente unânime, o Comitê de Política Monetária (Copom) reduziu a taxa Selic em 25 bps, de 14,25% para 14,00% a.a., marcando a quarta reunião consecutiva de cortes desde o início do ciclo de afrouxamento monetário.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "k5",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "k6",
+          "text": "Em comparação com o último comunicado, o cenário externo passou a incluir também as incertezas sobre a política monetária em algumas economias avançadas. Já o cenário doméstico teve leitura mista. Na atividade, o comitê substituiu a avaliação de \"aceleração\" por \"moderação gradual da atividade, embora ainda em patamar resiliente\", citando que os indicadores \"mantêm-se consistentes com uma trajetória de desaceleração no acumulado de 2026\". Por outro lado, o mercado de trabalho passou de \"resiliente\" para \"aquecido\".",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "k7",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "k8",
+          "text": "Na inflação, o comitê reconheceu que tanto a inflação cheia quanto as medidas subjacentes desaceleraram, com a cheia ainda acima do limite superior da meta e as medidas subjacentes ligeiramente abaixo dele. Ainda assim, as expectativas seguem desancoradas e acima da meta, e o balanço de riscos permanece com assimetria altista. O comitê passou também a afirmar que monitora com atenção a desancoragem das expectativas de inflação para prazos mais longos, e reconhece que isso aumenta o custo da desinflação.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "k9",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "k10",
+          "text": "Por fim, o comitê reafirmou que o tamanho do ciclo será estabelecido à luz de novas informações, não indicando os próximos passos da política monetária. Acrescentou que o cenário atual, caracterizado por uma maior volatilidade, demanda \"serenidade e cautela\", com o Copom se mantendo vigilante para manter a restrição adequada e assegurar a convergência da inflação à meta.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "k11",
+      "style": "h3",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "k12",
+          "marks": [],
+          "text": "Visão MZR"
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "k13",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "k14",
+          "text": "Após o comunicado anterior, que gerou bastante ruído sobre a comunicação do Bacen, o Copom adotou um tom mais neutro, evitando sinalizar os próximos passos. No campo inflacionário houve melhora na margem, mas a projeção no horizonte relevante segue em 3,2%, ainda acima da meta de 3%. Ou seja, a convergência ainda não está assegurada. Na atividade, os sinais também já apontam para uma desaceleração mais acentuada: o próprio comunicado afirma que os indicadores \"mantêm-se consistentes com uma trajetória de desaceleração no acumulado de 2026\". Em contrapartida, o ponto que mais chamou atenção foi a inclusão de um trecho sobre a desancoragem das expectativas de inflação para prazos mais longos e o aumento do custo de desinflação que isso acarreta. Como o comunicado foi propositalmente agnóstico, entramos em um período mais dependente dos dados, e a ata da próxima semana deve trazer mais elementos sobre os próximos passos. De qualquer forma, o Copom parece querer caminhar para seguir com cortes de 25bps nas próximas reuniões.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "k15",
+      "style": "h2",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "k16",
+          "marks": [],
+          "text": "EUA"
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "k17",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "k18",
+          "text": "Em sua segunda reunião após a troca de comando, o Federal Open Market Committee (FOMC) manteve o Fed Funds Rate em patamar inalterado pela quinta reunião consecutiva, no intervalo de 3,50% a 3,75%. A decisão apresentou um placar de nove votos favoráveis e três dissidências, todas favoráveis a uma alta de 25 bps: Beth Hammack (Cleveland), Neel Kashkari (Minneapolis) e Lorie Logan (Dallas). O resultado contrasta com a unanimidade da reunião de junho e marca o retorno das divergências ao comitê.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "k19",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "k20",
+          "text": "O conteúdo do comunicado seguiu muito parecido ao da reunião anterior, reconhecendo o ritmo sólido da atividade econômica, nenhuma mudança significativa no desemprego e uma inflação ainda elevada, em parte pelos choques de oferta em setores como energia. Novamente a ênfase foi para o compromisso do comitê, focados na mensagem de que vão entregar a estabilidade de preços.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "k21",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "k22",
+          "text": "Com o fim do forward guidance, o destaque ficou para a fala do presidente Kevin Warsh, que trouxe alguma visão sobre a atual função de reação do FED. Warsh foi enfático em rejeitar a ideia de uma meta implícita mais alta, reafirmando que existe apenas a meta de inflação de 2%. Warsh também comentou a precificação \"materialmente mais alta\" ao longo da curva de juros, que interpretou como um ajuste natural do mercado, agora mais focado nos dados e menos na atuação do FED. Por fim, ao tratar do forte crescimento do investimento das empresas, com destaque para o capex ligado à IA, Warsh reconheceu que a tecnologia é força de oferta e de demanda ao mesmo tempo, com efeito líquido incerto sobre a inflação.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "k23",
+      "style": "h3",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "k24",
+          "marks": [],
+          "text": "Visão MZR"
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "k25",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "k26",
+          "text": "A decisão, apesar de manter o intervalo inalterado, veio com tom mais hawkish: o comitê reafirmou um compromisso inegociável com a meta de inflação e entregou a \"good family fight\" desejada pelo novo chair. As três dissidências, todas a favor de alta, não representam uma divisão nova, os mesmos membros já haviam se oposto ao viés de afrouxamento no comunicado de abril, e agora endurecem a posição ao defender o aperto imediato. Mais do que o placar, foi a coletiva que trouxe pistas sobre a função de reação que se desenha sob Warsh, centrada na estabilidade de preços.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "k27",
+      "style": "normal",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "k28",
+          "text": "Para frente, a leitura fica na dúvida sobre o peso que o FED atribuirá à própria precificação de mercado. Warsh sinalizou conforto com juros mais altos e mais voláteis ao longo da curva, tratando o movimento como um mercado que passa a reagir aos dados e menos à sinalização do comitê. Resta saber se esse aperto \"de mercado\" será suficiente para o FED ou se as próximas leituras de inflação e atividade forçarão uma decisão mais explícita. O novo modelo adotado exige cautela, há um risco claro de uma maior volatilidade na curva de juros daqui pra frente ou pelo menos até o mercado se adaptar ao novo presidente do FED.",
+          "marks": []
+        }
+      ]
+    },
+    {
+      "_type": "block",
+      "_key": "k29",
+      "style": "regulatorio",
+      "markDefs": [],
+      "children": [
+        {
+          "_type": "span",
+          "_key": "k30",
+          "marks": [],
+          "text": "Este material foi elaborado pela MMZR Family Office exclusivamente para fins informativos, não constituindo oferta, solicitação, recomendação ou análise de investimento, e não considera objetivos, situação financeira ou necessidades específicas de cada investidor. Rentabilidade passada não representa garantia de rentabilidade futura. Elaborado em conformidade com o Código ANBIMA de Regulação e Melhores Práticas."
+        }
+      ]
+    }
+  ]
+}

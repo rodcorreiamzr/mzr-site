@@ -17,6 +17,7 @@
 //        --pasta <caminho> (obrigatório só pra --category comunicado)
 //        --pular-gerador (não roda o gerador Ruby / gerador de comunicado de novo)
 //        --pular-og (não tira screenshot do card OG)
+//        --rapido (= --pular-gerador --pular-og; modo de iterar no texto)
 //        --og <caminho-imagem> (sobrescreve a imagem OG, manual)
 //        --strip-first-heading / --keep-first-heading (default: mantém)
 //
@@ -48,8 +49,14 @@ const PUBLISH = has('publish');
 const FORCE = has('force');
 const TITULO = opt('titulo');
 const DATA = opt('data');
-const PULAR_GERADOR = has('pular-gerador');
-const PULAR_OG = has('pular-og');
+// --rapido = --pular-gerador --pular-og. É o modo de iterar no texto: nem o
+// gerador Ruby nem o Chromium mudam o documento que vai pro Sanity, e os dois
+// juntos custam dezenas de segundos por rodada. A capa OG já gerada na pasta é
+// reaproveitada do disco (ver bloco da capa mais abaixo), então nem no
+// --publish o --rapido apaga a imagem que está no ar.
+const RAPIDO = has('rapido');
+const PULAR_GERADOR = has('pular-gerador') || RAPIDO;
+const PULAR_OG = has('pular-og') || RAPIDO;
 const OG_OVERRIDE = opt('og');
 
 const PRESETS = {
@@ -71,6 +78,55 @@ function bannerFinal() {
     process.exitCode = 1; // aparece como falha no terminal do VS Code
   }
   console.log(linha + '\n');
+}
+
+// Outline legível do corpo, gravado ao lado do .preview.json no --dry.
+//
+// O .preview.json é o artefato fiel (é literalmente o que vai pro Sanity), mas
+// conferir prosa lendo Portable Text é péssimo: a carta dá ~1.400 linhas de
+// JSON pra ~90 blocos de texto. Aqui sai uma linha por bloco — estrutura,
+// ordem dos widgets, legendas e onde cada seção começa, que é o que se revisa
+// antes de publicar. Pra investigar um bloco específico, o .json continua lá.
+function outline(doc) {
+  const linhas = [
+    `título: ${doc.titulo}`,
+    `slug:   ${doc.slug.current}   (_id: ${doc._id})`,
+    `tag:    ${doc.tag}`,
+    `data:   ${doc.data}`,
+    `blocos: ${doc.corpo.length}`,
+    '─'.repeat(72),
+  ];
+  const corta = (s, n = 90) => {
+    const t = s.replace(/\s+/g, ' ').trim();
+    return t.length > n ? t.slice(0, n - 1) + '…' : t;
+  };
+  for (const b of doc.corpo) {
+    if (b._type === 'image') {
+      linhas.push(`[imagem]${b.legenda ? ` legenda: ${corta(b.legenda, 60)}` : ' (sem legenda)'}${b.largura ? ` largura: ${b.largura}%` : ''}`);
+      continue;
+    }
+    if (b._type === 'codigoEmbutido') {
+      // identifica o widget pela classe raiz do HTML gerado, senão os 5 viram
+      // todos "[embed]" e some justamente a informação que se quer conferir:
+      // se cada tabela caiu no lugar certo do texto.
+      const c = b.codigo || '';
+      const dica = /mzrdec-card/.test(c) ? 'card de decisões'
+        : /lt-wrap|lt-legend/.test(c) ? 'ranking multimercado'
+        : /alloc-bar/.test(c) ? 'tabela rentabilidades'
+        : /chart-canvas-wrap/.test(c) ? 'indicadores de mercado'
+        : /badge b-[no]/.test(c) ? 'tabela posicionamento'
+        : /col-title/.test(c) ? 'tabela indicadores'
+        : 'html não identificado';
+      linhas.push(`[embed] ${dica} (${c.length} chars)`);
+      continue;
+    }
+    const texto = (b.children || []).map((c) => c.text || '').join('');
+    const nLinks = (b.markDefs || []).filter((m) => m._type === 'link').length;
+    const bruto = b.style === 'normal' || !b.style ? (b.listItem ? '•' : 'p') : b.style === 'regulatorio' ? 'REG' : b.style.toUpperCase();
+    const estilo = bruto.padStart(3);
+    linhas.push(`${estilo} | ${corta(texto)}${nLinks ? `   [${nLinks} link]` : ''}`);
+  }
+  return linhas.join('\n') + '\n';
 }
 
 function fatal(erro) {
@@ -96,19 +152,43 @@ const client = createClient({ projectId: 'xe11jg20', dataset: 'production', apiV
 
 // ---- 1. resolve a pasta de trabalho (roda o gerador Ruby se for carta) ----
 
+// O gerador imprime uma linha "✓" por aba lida e por arquivo escrito — dezenas
+// de linhas de ruído que só atrapalham quem lê o log. O log completo vai pra
+// gerador.log (ao lado do gerar_outputs.rb) e no terminal aparecem só as linhas
+// que exigem decisão: falhas (✗), avisos (⚠), o "pulando" do ranking (…) e o
+// Período. As três primeiras também entram no banner final — um "✗ tabela: erro"
+// no meio do log era fácil de não ver, e a tabela sumia da carta em silêncio.
+const RELEVANTE_RE = /(^|\s)(✗|⚠|…)|Período:/u;
+
 function runGeradorRuby() {
   return new Promise((resolve, reject) => {
-    console.log(`\n▶ Rodando gerador de HTMLs (ruby gerar_outputs.rb)...\n`);
+    console.log(`\n▶ Rodando gerador de HTMLs (ruby gerar_outputs.rb)...`);
     // stdin 'ignore': o script termina com "Pressione ENTER para fechar..." (pensado
     // pro duplo-clique no .command) — sem stdin aberto, o gets() recebe EOF na hora
     // em vez de travar esperando um ENTER que nunca chega.
     const proc = spawn('ruby', ['gerar_outputs.rb'], { cwd: GERADOR_DIR, stdio: ['ignore', 'pipe', 'pipe'] });
     let out = '';
-    proc.stdout.on('data', (d) => { out += d.toString(); process.stdout.write(d); });
-    proc.stderr.on('data', (d) => process.stderr.write(d));
+    let err = '';
+    proc.stdout.on('data', (d) => { out += d.toString(); });
+    proc.stderr.on('data', (d) => { err += d.toString(); });
     proc.on('error', reject);
     proc.on('close', (code) => {
-      if (code !== 0) return reject(new Error(`gerar_outputs.rb terminou com código ${code}`));
+      const logPath = path.join(GERADOR_DIR, 'gerador.log');
+      fs.writeFileSync(logPath, out + (err ? '\n--- stderr ---\n' + err : ''));
+
+      const relevantes = out.split('\n').filter((l) => RELEVANTE_RE.test(l));
+      relevantes.forEach((l) => console.log(l));
+      console.log(`  (log completo: ${path.relative(SITE_ROOT, logPath)})\n`);
+      for (const l of relevantes) {
+        if (/Período:/.test(l)) continue;
+        avisos.push(`gerador Ruby: ${l.trim()}`);
+      }
+
+      if (code !== 0) {
+        console.error(out.split('\n').slice(-15).join('\n'));
+        if (err) console.error(err);
+        return reject(new Error(`gerar_outputs.rb terminou com código ${code} (log: ${logPath})`));
+      }
       resolve(out);
     });
   });
@@ -712,7 +792,11 @@ async function main() {
   if (DRY) {
     const previewPath = DOCX.replace(/\.docx?$/i, '.preview.json');
     fs.writeFileSync(previewPath, JSON.stringify(doc, null, 2));
-    console.log(`\n[DRY] nada gravado. Preview: ${path.basename(previewPath)}`);
+    const outlinePath = DOCX.replace(/\.docx?$/i, '.preview.txt');
+    fs.writeFileSync(outlinePath, outline(doc));
+    console.log(`\n[DRY] nada gravado.`);
+    console.log(`      Revisar: ${path.basename(outlinePath)}  (outline legível)`);
+    console.log(`      Detalhe: ${path.basename(previewPath)}  (Portable Text fiel)`);
     return;
   }
 

@@ -80,9 +80,56 @@ precisam de `dados.json` — só o `.docx`, sem header nem OG automático.
 - `--pular-gerador` — não roda o gerador Ruby / gerador de comunicado de novo
   (reaproveita o que já tem na pasta; útil pra iterar rápido no `--dry`).
 - `--pular-og` — não tira screenshot da capa.
+- `--rapido` — atalho pra `--pular-gerador --pular-og`. É o modo de iterar no
+  texto: nenhum dos dois muda o documento que vai pro Sanity e juntos custam
+  dezenas de segundos por rodada. A capa OG já gerada é reaproveitada do disco,
+  então nem no `--publish` o `--rapido` apaga a imagem que está no ar.
 - `--og <caminho-imagem>` — sobrescreve a capa com uma imagem específica.
 - `--keep-first-heading` / `--strip-first-heading` — default mantém (o texto
   novo não repete o título como heading).
+
+## Como revisar um `--dry`
+
+O `--dry` grava dois arquivos ao lado do `.docx`:
+
+- **`<docx>.preview.txt`** — outline legível, uma linha por bloco (estilo,
+  primeiros 90 caracteres, legendas, qual widget é cada embed). É por aqui que
+  se confere estrutura e ordem — a carta dá ~25 linhas aqui contra ~1.400 de
+  JSON.
+- **`<docx>.preview.json`** — o Portable Text fiel, literalmente o objeto que
+  vai pro `createOrReplace`. Serve pra investigar um bloco específico.
+
+E o `conferir.mjs` compara a espinha do documento novo com a de um já publicado
+(headings, widgets, imagens, regulatório — texto de parágrafo não entra, muda
+todo mês por definição):
+
+```bash
+node scripts/conferir.mjs \
+  --preview "../Gerador Cartas e OG/Outputs/2026/08.Agosto/<arquivo>.preview.json" \
+  --gabarito carta-carta-mensal-junho-2026
+```
+
+Gabaritos: `carta-carta-mensal-junho-2026` (carta) e
+`analise-comunicado-copom-fed-05-08` (comunicado). Nem toda diferença é erro —
+seção que só existe em alguns meses, tabela opcional — mas cada uma merece um
+"isso é de propósito?".
+
+## Teste de regressão (antes de mexer no `publicar-mensal.mjs`)
+
+```bash
+node scripts/regressao.mjs              # tem que passar antes de commitar
+node scripts/regressao.mjs --atualizar  # só quando a mudança de output é intencional
+```
+
+Roda os dois `--dry` reais já publicados (Carta de Julho/26 e Comunicado de
+05/08) e compara o `.preview.json` com os snapshots em `scripts/__snapshots__/`.
+Como o `.preview.json` é o objeto que vai pro Sanity, snapshot idêntico =
+publicação idêntica. Os `_key` aleatórios são renumerados antes de comparar,
+preservando o vínculo `markDefs._key` ↔ `marks` (se um link se soltar do texto,
+o diff acusa).
+
+Um caso PULADO (pasta de trabalho ausente) **não** conta como aprovado — o
+script sai com código 1 e avisa que a cobertura foi parcial.
 
 ## Marcadores `[[TABELA:...]]`
 
