@@ -14,6 +14,11 @@
       "source": "/estagio",
       "destination": "https://app.walljobs.com.br/vagas/mmzr-gestora-de-recursos-ltda_-estagio-regular-mzr-family-office",
       "statusCode": 302
+    },
+    {
+      "source": "/linkedin",
+      "destination": "https://www.linkedin.com/company/mzrfo",
+      "statusCode": 302
     }
   ]
 }
