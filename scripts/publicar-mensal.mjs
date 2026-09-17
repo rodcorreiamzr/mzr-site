@@ -679,9 +679,19 @@ async function main() {
       avisos.push(`H3 "${H3_DESEMPENHO}" inserido antes de "${textoDoBloco(corpoFinal[alvo + 1]).slice(0, 40)}…"`);
     }
 
-    // 7d. "Fonte: ..." logo depois de uma imagem vira a legenda daquela imagem.
+    corpoComWidgets.length = 0;
+    corpoComWidgets.push(...corpoFinal);
+  }
+
+  corpo = corpoComWidgets;
+
+  // ---- 7d. "Fonte: ..." logo depois de uma imagem vira a legenda dela ----
+  //
+  // Vale pras duas categorias: o comunicado de 16/09 foi o primeiro a vir com
+  // imagem (dot plot e tabela do SEP, as duas do Federal Reserve).
+  {
     const comLegendas = [];
-    for (const b of corpoFinal) {
+    for (const b of corpo) {
       const anterior = comLegendas[comLegendas.length - 1];
       const texto = b._type === 'block' ? (b.children || []).map((c) => c.text || '').join('').trim() : '';
       if (anterior?._type === 'image' && /^fonte\b/i.test(texto) && texto.length < 120) {
@@ -691,12 +701,8 @@ async function main() {
       }
       comLegendas.push(b);
     }
-
-    corpoComWidgets.length = 0;
-    corpoComWidgets.push(...comLegendas);
+    corpo = comLegendas;
   }
-
-  corpo = corpoComWidgets;
 
   // ---- 7f. comunicado: pseudo-títulos em negrito -> H2 (país) / H3 (visão) ----
   //
@@ -706,16 +712,20 @@ async function main() {
   // (visão) — é o que alimenta o índice da página. O ":" do fim sai.
   if (CATEGORY === 'comunicado') {
     const VISAO_RE = /^vis[ãa]o\s+m{1,2}zr\b/i;
+    // em alguns ciclos o analista manda o texto sem negrito nenhum (16/09 veio
+    // assim). Aí a seção é reconhecida pelo nome, não pela formatação.
+    const SECAO_RE = /^(brasil|eua|estados unidos)$/i;
     const isBoldOnly = (c) => c._type === 'span' && (c.marks || []).length === 1 && c.marks[0] === 'strong';
     for (let i = 0; i < corpo.length; i++) {
       const b = corpo[i];
       if (b._type !== 'block' || (b.style && b.style !== 'normal') || !b.children?.length) continue;
       const spans = b.children.filter((c) => c._type === 'span');
       const visiveis = spans.filter((c) => (c.text || '').trim());
-      if (!visiveis.length || !visiveis.every(isBoldOnly)) continue;
+      if (!visiveis.length) continue;
       const texto = visiveis.map((c) => c.text || '').join('').trim().replace(/\s*:\s*$/, '');
       // negrito longo é ênfase de parágrafo inteiro, não título de seção
       if (!texto || texto.length > 60) continue;
+      if (!visiveis.every(isBoldOnly) && !SECAO_RE.test(texto) && !VISAO_RE.test(texto)) continue;
       const style = VISAO_RE.test(texto) ? 'h3' : 'h2';
       corpo[i] = { ...b, style, markDefs: [], children: [{ _type: 'span', _key: key(), marks: [], text: texto }] };
       avisos.push(`"${texto}" promovido a ${style.toUpperCase()}`);

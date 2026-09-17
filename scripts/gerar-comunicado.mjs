@@ -169,9 +169,21 @@ function buildOg(dados, lados) {
   const decisions = lados.map((k) => {
     const d = dados[k];
     const badge = BADGE[d.decisao];
+    // a coluna do OG tem ~470px: uma transição entre dois ranges do Fed
+    // ("3,50% – 3,75% → 3,75% – 4,00%") não cabe em 44px e quebrava em três
+    // linhas soltas. Cada taxa vira um bloco indivisível e a fonte diminui,
+    // então o pior caso quebra em duas linhas inteiras. Tem que ser nowrap, e
+    // não nbsp: o próprio travessão do range já é ponto de quebra em CSS.
+    const nb = (t) => `<span class="nb">${t}</span>`;
+    const dNb = {
+      ...d,
+      taxaAtual: nb(d.taxaAtual),
+      taxaAnterior: d.taxaAnterior ? nb(d.taxaAnterior) : d.taxaAnterior,
+    };
+    const longa = rateHtml(d, 'arrow').replace(/<[^>]+>/g, '').length > 16 ? ' dec-rate--longa' : '';
     return `        <div class="og-decision">
           <span class="dec-label">${COUNTRY_LABEL[k]}</span>
-          <span class="dec-rate">${rateHtml(d, 'arrow')}</span>
+          <span class="dec-rate${longa}">${rateHtml(dNb, 'arrow')}</span>
           <span class="dec-pill ${badge.ogClass}">${badge.label(d.bps)}</span>
         </div>`;
   }).join('\n');
@@ -216,6 +228,8 @@ function buildOg(dados, lados) {
   .dec-label { font-size: 22px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #A8B8CC; }
   .dec-rate { font-size: 44px; font-weight: 600; letter-spacing: -.01em; font-variant-numeric: tabular-nums; color: #FFFFFF; line-height: 1; }
   .dec-rate .arrow { color: #C9A77C; font-weight: 500; margin: 0 .12em; }
+  .dec-rate--longa { font-size: 34px; line-height: 1.18; }
+  .dec-rate .nb { white-space: nowrap; }
   .dec-pill { align-self: flex-start; display: inline-flex; align-items: center; font-size: 22px; font-weight: 600; letter-spacing: .3px; padding: 9px 20px; border-radius: 999px; border: 1px solid transparent; }
   .dec-pill--corte      { color: #5CC87A; background: rgba(92,200,122,0.14);  border-color: rgba(92,200,122,0.38); }
   .dec-pill--manutencao { color: #C6D2E2; background: rgba(255,255,255,0.07);  border-color: rgba(255,255,255,0.20); }
