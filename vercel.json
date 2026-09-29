@@ -20,5 +20,15 @@
       "destination": "https://www.linkedin.com/company/mzrfo",
       "statusCode": 302
     }
+  ],
+  "headers": [
+    {
+      "source": "/((?!_astro/|.*\\.[a-zA-Z0-9]+$).*)",
+      "headers": [{ "key": "Vary", "value": "Accept" }]
+    },
+    {
+      "source": "/(.*)\\.md",
+      "headers": [{ "key": "Content-Type", "value": "text/markdown; charset=utf-8" }]
+    }
   ]
 }

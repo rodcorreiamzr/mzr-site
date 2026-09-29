@@ -1,0 +1,38 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Página não encontrada — MZR Family Office" description="O endereço solicitado não existe no site da MZR Family Office." noindex={true}>
+
+  <style>
+    .nf-header { background: var(--navy-700); padding: 96px 0 88px; min-height: 60vh; }
+    .nf-header .overline { color: rgba(201,167,124,0.80); }
+    .nf-header .section-title { color: #fff; margin-bottom: 16px; }
+    .nf-texto { color: rgba(255,255,255,0.65); font-size: 16px; line-height: 1.6; max-width: 560px; margin-bottom: 40px; }
+    .nf-links { display: flex; flex-wrap: wrap; gap: 16px; }
+    .nf-link {
+      display: inline-flex; align-items: center; padding: 14px 28px; border-radius: 8px;
+      font-family: 'Work Sans', sans-serif; font-weight: 600; font-size: 14px; text-decoration: none;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+    .nf-link-primary { background: var(--gold-400); color: var(--navy-800); }
+    .nf-link-primary:hover { background: var(--gold-500); }
+    .nf-link-secondary { border: 1px solid rgba(255,255,255,0.25); color: #fff; }
+    .nf-link-secondary:hover { border-color: var(--gold-400); color: var(--gold-400); }
+    @media (max-width: 768px) { .nf-header { padding: 64px 0 56px; } }
+  </style>
+
+  <div class="nf-header">
+    <div class="section-inner">
+      <div class="overline">Erro 404</div>
+      <h1 class="section-title">Página não encontrada</h1>
+      <p class="nf-texto">O endereço que você acessou não existe ou mudou de lugar. Você pode voltar à página inicial ou ver as nossas publicações.</p>
+      <div class="nf-links">
+        <a href="/" class="nf-link nf-link-primary">Página inicial</a>
+        <a href="/publicacoes" class="nf-link nf-link-secondary">Publicações</a>
+        <a href="/#contato" class="nf-link nf-link-secondary">Contato</a>
+      </div>
+    </div>
+  </div>
+
+</Base>

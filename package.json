@@ -5,9 +5,12 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "test:agentes": "node --experimental-strip-types --no-warnings --test scripts/agentes.test.mjs",
+    "check:agentes": "node scripts/check-agentes.mjs"
   },
   "dependencies": {
+    "@astrojs/sitemap": "^3.7.4",
     "@portabletext/to-html": "^2.0.0",
     "@sanity/astro": "^3.4.1",
     "@sanity/client": "^7.14.1",

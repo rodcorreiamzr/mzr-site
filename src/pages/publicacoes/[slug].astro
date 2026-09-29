@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import { getPublicacoes, getPublicacaoBySlug } from '../../lib/sanity';
 import { toHTML } from '@portabletext/to-html';
+import { jsonLdArtigo } from '../../lib/agentes';
 
 export async function getStaticPaths() {
   const publicacoes = await getPublicacoes();
@@ -108,6 +109,8 @@ const corpoHTML = pub.corpo ? toHTML(pub.corpo, {
   description={metaDescription}
   ogImage={pub.ogImagemUrl || undefined}
   ogType="article"
+  jsonLd={jsonLdArtigo(pub, metaDescription)}
+  markdownUrl={`/publicacoes/${pub.slug}.md`}
 >
 
   <style>

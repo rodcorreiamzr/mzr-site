@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { getUltimasPublicacoes, getFundoDocumentos, getPrestacaoContas } from '../lib/sanity';
+import { jsonLdHome } from '../lib/agentes';
 const publicacoes = await getUltimasPublicacoes(6);
 const fundoDocs = await getFundoDocumentos();
 const prestacao = await getPrestacaoContas();
@@ -16,6 +17,8 @@ function formatDate(dateStr: string) {
   title="MZR Family Office — Multi-Family Office Completo e Independente"
   description="Gestão do patrimônio global de famílias, no Brasil e no exterior."
   ogImage={new URL('/og-home.jpg', Astro.site).href}
+  jsonLd={jsonLdHome()}
+  markdownUrl="/index.md"
 >
 
 <style is:global>
@@ -1007,17 +1010,17 @@ function formatDate(dateStr: string) {
           </div>
         </div>
       </div>
-      <form class="form reveal" id="contactForm">
+      <form class="form reveal" id="contactForm" action="https://api.web3forms.com/submit" method="POST" aria-label="Formulário de contato">
         <input type="hidden" name="access_key" value="e6bbe3d2-bf12-41e9-b1cd-5f45359a370f">
         <input type="hidden" name="subject" value="Novo contato pelo site MZR Family Office">
         <input type="hidden" name="from_name" value="Site MZR Family Office">
-        <input type="checkbox" name="botcheck" class="form-honeypot" tabindex="-1" autocomplete="off">
-        <div class="form-field"><label class="form-label">Nome</label><input class="form-input" type="text" name="name" placeholder="Seu nome completo" required></div>
+        <input type="checkbox" name="botcheck" class="form-honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <div class="form-field"><label class="form-label" for="contato-nome">Nome</label><input class="form-input" id="contato-nome" type="text" name="name" autocomplete="name" placeholder="Seu nome completo" required></div>
         <div class="form-row">
-          <div class="form-field"><label class="form-label">E-mail</label><input class="form-input" type="email" name="email" placeholder="seu@email.com.br" required></div>
-          <div class="form-field"><label class="form-label">Telefone</label><input class="form-input" type="tel" name="telefone" placeholder="(XX) XXXXX-XXXX"></div>
+          <div class="form-field"><label class="form-label" for="contato-email">E-mail</label><input class="form-input" id="contato-email" type="email" name="email" autocomplete="email" placeholder="seu@email.com.br" required></div>
+          <div class="form-field"><label class="form-label" for="contato-telefone">Telefone</label><input class="form-input" id="contato-telefone" type="tel" name="telefone" autocomplete="tel" placeholder="(XX) XXXXX-XXXX"></div>
         </div>
-        <div class="form-field"><label class="form-label">Mensagem</label><textarea class="form-textarea" name="message" placeholder="Como podemos ajudar?" required></textarea></div>
+        <div class="form-field"><label class="form-label" for="contato-mensagem">Mensagem</label><textarea class="form-textarea" id="contato-mensagem" name="message" placeholder="Como podemos ajudar?" required></textarea></div>
         <button class="form-submit" type="submit">Enviar mensagem</button>
         <p class="form-status" id="contactFormStatus" role="status"></p>
       </form>

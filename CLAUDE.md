@@ -39,9 +39,17 @@ scripts/
 - Documentos Sanity "singleton" (`prestacaoContas`, `documentosRegulatorio`) — manter só 1 registro publicado; a query sempre pega `[0]`.
 
 ## Pendências atuais
-- **Formulário de contato** (`index.astro`, seção `#contato`) — hoje é `onsubmit="return false"`, sem `name`/`action`. Decidido: **Web3Forms** (grátis, sem backend — site é `output:'static'`). Implementar: `access_key` público + fetch POST pra `https://api.web3forms.com/submit` + honeypot anti-spam.
 - **Script de publicação recorrente** (Carta Mensal + Comunicados + Livros) — hoje só existe `scripts/migrar.mjs`, que é o migrador **one-off** do histórico Webflow (roda a partir de CSV). Falta um script separado pro fluxo mensal: analista atualiza a planilha → gera HTML em `Sites/Gerador Cartas e OG/` (ver abaixo) → esse script pega o HTML/dados e publica no Sanity. Reaproveitar `scripts/lib/convert.mjs`. Categoria "Comunicados" pode precisar de tag nova no schema `publicacao` (hoje: Cartas Mensais | Analises | Livros | Gestoras | FOFs).
 - Avaliar se 8px do estilo "Texto regulatório" está legível o suficiente.
+
+## Agentes de IA (llms.txt, Markdown, JSON-LD)
+Medido pelo Is Agentic (isagentic.com). Verificação ponta a ponta: `npm run check:agentes` (site no ar) e `npm run test:agentes` (unitário, sem rede).
+- **`middleware.js`** (raiz, Vercel Routing Middleware): `Accept: text/markdown` → devolve `<caminho>.md` gerado no build (Home = `/index.md`) com `Vary: Accept`; URL inexistente → `/404.md` com status 404; página sem `.md` → HTML normal. Navegador nunca passa por ele. Os 4 redirects do `vercel.json` estão listados lá para não serem tocados — **ao criar redirect novo, adicionar em `REDIRECTS`**.
+- **Gerados no build** (`src/pages/*.md.ts`, `llms.txt.ts`): `/index.md`, `/publicacoes.md`, `/publicacoes/<slug>.md` (Portable Text → Markdown em `src/lib/markdown.ts`), `/llms.txt`, `/404.md`. Publicar no Sanity já atualiza tudo.
+- **`src/lib/agentes.ts`**: dados institucionais, JSON-LD (Home = `FinancialService`, publicação = `Article`), texto do llms.txt e **cópia da copy da Home** — mudou texto da Home, atualizar aqui também.
+- Sem e-mail no JSON-LD/llms.txt (decisão: contato pelo formulário). Não há revisão de compliance: textos para agentes só repetem fatos já publicados + aviso padrão (`AVISO`).
+- `robots.txt` libera todos os robôs (inclusive IA). Sitemap via `@astrojs/sitemap`; página `noindex` nova → adicionar em `FORA_DO_SITEMAP` (`astro.config.mjs`).
+- O "Failed" de redirects no Is Agentic é falso positivo aceito: `/instagram` etc. já são 302 HTTP, a ferramenta só penaliza sair do domínio.
 
 ## Pastas irmãs relevantes (fora deste repo git)
 - **`Sites/Gerador Cartas e OG/`** — app Python/Ruby (roda local via `.command`/`.bat`) que gera os HTMLs da Carta Mensal e das imagens Open Graph a partir de uma planilha (`Dados Carta Mensal.gsheet`) que os analistas atualizam. Output relevante para o script de publicação pendente acima — os HTMLs gerados ali (`Outputs/<ano>/<mês>/`) serão a fonte de dados/layout que o script de publicação vai consumir. Não é código do site, não versionar junto.

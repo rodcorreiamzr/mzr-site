@@ -1,0 +1,5 @@
+# Todos os robôs (inclusive de IA) podem ler o site.
+User-agent: *
+Allow: /
+
+Sitemap: https://mzrfo.com.br/sitemap-index.xml
