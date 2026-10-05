@@ -584,6 +584,16 @@ async function main() {
       const textoTotal = spans.map((c) => c.text || '').join('').trim();
       if (/^fonte\b/i.test(textoTotal)) { corpoFinal.push(b); continue; }
 
+      // Título com estilo real do Word (Setembro/26: "Brasil – Agora, as eleições
+      // dominam a discussão", em Título 2 dentro do Resumo). Na carta as seções
+      // são sempre os pseudo-títulos em negrito acima; heading de verdade é
+      // subtópico de seção, então vira H3 — mesmo nível do subtítulo do mês.
+      if (b.style === 'h2' && !visiveis.every(isBoldOnly)) {
+        corpoFinal.push({ ...b, style: 'h3', markDefs: (b.markDefs || []).filter((d) => d.href) });
+        avisos.push(`título do Word "${textoTotal.slice(0, 60)}" rebaixado a H3 (subtópico de seção)`);
+        continue;
+      }
+
       if (visiveis.every(isBoldOnly)) {
         corpoFinal.push(tituloizar({ ...b, children: spans.filter((c) => c._type === 'span') }));
         continue;
