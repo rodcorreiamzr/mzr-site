@@ -444,12 +444,25 @@ async function main() {
   // mostra o mesmo conteúdo.
   const NOTAS_CRUAS_RE = /^novo formato\b/i;
 
+  // Instrução do modelo do .docx ("Planilha Indicadores / Posicionamento / ...
+  // para geração de HTMLs interativos da carta: <link> - Alterar os dados...")
+  // que às vezes não é apagada e chega colada antes do 1º marcador (Setembro/26).
+  // Tudo antes do marcador é descartado.
+  const INSTRUCAO_MODELO_RE = /^planilha\b.*\bgera[çc][ãa]o de htmls?\b/i;
+
   function splitLeadingMarker(b) {
     if (b._type !== 'block' || !b.children?.length) return null;
     const spans = b.children;
     let i = 0;
     while (i < spans.length && !(spans[i].text || '').trim()) i++;
     if (i >= spans.length) return null;
+    if (INSTRUCAO_MODELO_RE.test((spans[i].text || '').trim())) {
+      const j = spans.findIndex((c) => MARKER_RE.test((c.text || '').trim()));
+      if (j > i) {
+        avisos.push('instrução do modelo ("Planilha Indicadores / ...") antes do marcador descartada');
+        i = j;
+      }
+    }
     const primeiro = (spans[i].text || '').trim();
     const m = primeiro.match(MARKER_RE);
     if (!m) {
@@ -614,6 +627,15 @@ async function main() {
       if (b._type !== 'block' || (b.style && b.style !== 'normal') || !b.children?.length) continue;
       const primeiro = b.children[0];
       if (primeiro?._type !== 'span' || !SUBTITULO_RE.test((primeiro.text || '').trim())) continue;
+      // subtítulo num parágrafo só dele (Setembro/26): o bloco inteiro vira o H3
+      const textoBloco = b.children.map((c) => c.text || '').join('').trim();
+      if (b.children.length === 1 || !b.children.slice(1).some((c) => (c.text || '').trim())) {
+        const texto = textoBloco.replace(SUBTITULO_RE, '');
+        if (!texto) continue;
+        corpoFinal[i] = { ...b, style: 'h3', children: [{ ...primeiro, text: texto }] };
+        avisos.push(`subtítulo "${texto}" promovido a H3 (prefixo "Carta -" removido)`);
+        continue;
+      }
       // só separa se o subtítulo termina ali mesmo (o corpo vem depois da quebra)
       const seguintes = b.children.slice(1);
       if (!seguintes.length || (seguintes[0].text || '').trim()) continue;
