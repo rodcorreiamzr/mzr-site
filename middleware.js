@@ -8,7 +8,7 @@
 // Falha sempre para o lado seguro: qualquer erro aqui só devolve o HTML normal.
 
 // Redirects do vercel.json: não mexer, o agente deve seguir o 302.
-const REDIRECTS = ['/spotify', '/instagram', '/estagio', '/linkedin'];
+const REDIRECTS = ['/spotify', '/instagram', '/estagio', '/summer', '/linkedin'];
 
 const MD_HEADERS = {
   'Content-Type': 'text/markdown; charset=utf-8',
